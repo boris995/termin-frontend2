@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#172554"/>
+      <stop offset=".55" stop-color="#1e3a8a"/>
+      <stop offset="1" stop-color="#f97316"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="520" fill="url(#bg)"/>
+  <circle cx="400" cy="220" r="108" fill="#fed7aa" opacity=".9"/>
+  <path d="M250 520c26-106 84-160 150-160s124 54 150 160z" fill="#020617" opacity=".72"/>
+  <path d="M94 92h612M94 428h612" stroke="#fff7ed" stroke-opacity=".18" stroke-width="10" stroke-linecap="round"/>
+  <text x="400" y="82" text-anchor="middle" fill="#fff7ed" font-family="Arial, sans-serif" font-size="34" font-weight="800">FOOTBALL FACE-OFF</text>
+</svg>

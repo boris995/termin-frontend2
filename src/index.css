@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  background: #172554;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  color: #f8fafc;
+  background:
+    radial-gradient(circle at top left, rgba(249, 115, 22, 0.24), transparent 34rem),
+    radial-gradient(circle at 85% 18%, rgba(251, 146, 60, 0.13), transparent 24rem),
+    linear-gradient(135deg, #172554 0%, #0f172a 52%, #020617 100%);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.glass {
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(15 23 42 / 0.72);
+  backdrop-filter: blur(16px);
+}
