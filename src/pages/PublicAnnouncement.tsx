@@ -12,7 +12,7 @@ export const PublicAnnouncement = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    setSeo('Najava | Football Face-Off', 'Najava sljedece utakmice i novinski tekstovi.');
+    setSeo('Najava | Duel Liga', 'Najava sljedece utakmice i novinski tekstovi.');
     api
       .get('/home')
       .then(unwrap<HomeData>)

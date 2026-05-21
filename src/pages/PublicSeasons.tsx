@@ -12,7 +12,7 @@ export const PublicSeasons = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    setSeo('Sezone | Football Face-Off', 'Pregled sezona, trka do titule i tabela pobjeda.');
+    setSeo('Sezone | Duel Liga', 'Pregled sezona, trka do titule i tabela pobjeda.');
     Promise.all([
       api.get('/seasons').then(unwrap<Season[]>),
       api.get('/dashboard/season/1').then(unwrap<DashboardData>)

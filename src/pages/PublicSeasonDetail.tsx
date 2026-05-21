@@ -28,7 +28,7 @@ export const PublicSeasonDetail = () => {
       setPlayers(asArray(playerData));
       setMatches(asArray(matchData));
       setError('');
-      setSeo(`${seasonData.name} | Football Face-Off`, 'Timovi, igraci i rezultati izabrane sezone.');
+      setSeo(`${seasonData.name} | Duel Liga`, 'Timovi, igraci i rezultati izabrane sezone.');
     };
     load().catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
   }, [id]);

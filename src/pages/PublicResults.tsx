@@ -15,7 +15,7 @@ export const PublicResults = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    setSeo('Rezultati | Football Face-Off', 'Svi odigrani mecevi, pobjednici i rezultat po sezonama.');
+    setSeo('Rezultati | Duel Liga', 'Svi odigrani mecevi, pobjednici i rezultat po sezonama.');
     api.get(`/seasons/${seasonId}/matches`).then(unwrap<Match[]>).then((items) => {
       setMatches(asArray(items));
       setError('');

@@ -65,7 +65,7 @@ export const Dashboard = () => {
   if (!data) {
     return (
       <>
-        <PageTitle eyebrow="Live panel" title="Football Face-Off" />
+        <PageTitle eyebrow="Live panel" title="Duel Liga" />
         <Panel>{error || 'Ucitavanje dashboarda...'}</Panel>
       </>
     );

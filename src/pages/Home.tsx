@@ -1,8 +1,9 @@
-import { CalendarClock, ChevronRight, Newspaper, Shield, Trophy, Users } from 'lucide-react';
+import { CalendarClock, ChevronRight, Newspaper, Shield, Star, Trophy, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, asArray, unwrap } from '../api/client';
 import { assetUrl } from '../api/assets';
+import { useCardDesign } from '../components/CardDesignProvider';
 import { GoldPlayerCard } from '../components/GoldPlayerCard';
 import { ErrorPanel, Panel } from '../components/ui';
 import { HomeData } from '../types';
@@ -10,16 +11,18 @@ import { formatDateTime } from '../utils/date';
 import { setSeo } from '../utils/seo';
 
 export const Home = () => {
+  const { siteDesign, setSiteDesign } = useCardDesign();
   const [data, setData] = useState<HomeData | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    setSeo('Football Face-Off | Pocetna', 'Duel Liga rezultati, najave utakmica i novosti.');
+    setSeo('Duel Liga | Pocetna', 'Duel Liga rezultati, najave utakmica i novosti.');
     const loadHome = () => api
       .get('/home')
       .then(unwrap<HomeData>)
       .then((homeData) => {
         setData(homeData);
+        if (homeData.settings?.siteDesign) setSiteDesign(homeData.settings.siteDesign);
         setError('');
       })
       .catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
@@ -54,8 +57,237 @@ export const Home = () => {
   const featured = asArray(data.homeFeaturedPlayers);
   const leftTeam = teams[0];
   const rightTeam = teams[1];
-  const leftCards = featured.filter((player) => player.teamId === leftTeam?.id).slice(0, 4);
-  const rightCards = featured.filter((player) => player.teamId === rightTeam?.id).slice(0, 4);
+  const leftCards = featured.filter((player) => player.teamId === leftTeam?.id).slice(0, 3);
+  const rightCards = featured.filter((player) => player.teamId === rightTeam?.id).slice(0, 3);
+  const effectiveSiteDesign = data.settings?.siteDesign || siteDesign;
+  const totalGoals = lastMatches.reduce((sum, match) => sum + Number(match.homeScore || 0) + Number(match.awayScore || 0), 0);
+  const leaderWins = Math.max(...teams.map((team) => Number(team.wins || 0)), 0);
+  const topScorers = [...featured].sort((a, b) => Number(b.goals || 0) - Number(a.goals || 0)).slice(0, 3);
+  const nextDate = next ? formatDateTime(next.startedAt || next.scheduledAt) : 'Termin nije najavljen';
+  const nextTime = next
+    ? new Date(next.startedAt || next.scheduledAt).toLocaleTimeString('bs-BA', { hour: '2-digit', minute: '2-digit' })
+    : '--:--';
+
+  if (effectiveSiteDesign === 'premium') {
+    const teamInitial = (teamName?: string) => (teamName || '?').trim().charAt(0).toUpperCase();
+
+    return (
+      <main className="min-h-screen bg-[#05070b] text-white">
+        <section className="relative overflow-hidden border-b border-white/10">
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:82px_82px]" />
+          <div className="absolute left-1/2 top-0 h-full w-[42rem] -translate-x-1/2 bg-emerald-500/5 blur-3xl" />
+          <div className="relative mx-auto grid min-h-[438px] max-w-7xl items-center gap-8 px-4 py-16 md:grid-cols-[1fr_1.1fr_1fr] lg:px-8">
+            <div className="flex flex-col items-center text-center">
+              <div className="grid h-28 w-28 place-items-center rounded-full border-2 border-rose-600 bg-rose-950/45 text-3xl font-black text-rose-500">
+                {teamInitial(leftTeam?.name)}
+              </div>
+              <h1 className="mt-5 text-3xl font-black uppercase tracking-tight text-white md:text-4xl">{leftTeam?.name || 'Domacin'}</h1>
+            </div>
+
+            <div className="text-center">
+              <div className="mx-auto inline-flex items-center gap-2 rounded-md border border-emerald-400/45 px-4 py-2 text-[0.68rem] font-black uppercase tracking-[0.32em] text-emerald-400">
+                <CalendarClock size={13} />
+                {next?.status === 'live' ? 'Utakmica uzivo' : 'Sljedeca utakmica'}
+              </div>
+              <p className="mt-8 text-7xl font-black leading-none text-emerald-400 md:text-8xl">VS</p>
+              <p className="mt-3 text-[0.7rem] font-bold uppercase tracking-[0.32em] text-slate-500">{data.season?.name || 'Duel Liga'}</p>
+              <p className="mt-2 text-base font-black text-white">{nextDate}</p>
+              <p className="mt-2 text-3xl font-black text-emerald-400">{next?.status === 'live' ? 'LIVE' : nextTime}</p>
+              <p className="mx-auto mt-3 max-w-xs text-sm leading-5 text-slate-500">{next?.venue || next?.note || 'Lokacija ce biti prikazana kada bude unesena u najavu.'}</p>
+            </div>
+
+            <div className="flex flex-col items-center text-center">
+              <div className="grid h-28 w-28 place-items-center rounded-full border-2 border-blue-600 bg-blue-950/45 text-3xl font-black text-blue-500">
+                {teamInitial(rightTeam?.name)}
+              </div>
+              <h2 className="mt-5 text-3xl font-black uppercase tracking-tight text-white md:text-4xl">{rightTeam?.name || 'Gost'}</h2>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-white/10 bg-[#1a1d28]">
+          <div className="mx-auto grid max-w-7xl divide-y divide-white/10 px-4 md:grid-cols-4 md:divide-x md:divide-y-0 lg:px-8">
+            {[
+              { icon: CalendarClock, value: lastMatches.length, label: 'Utakmica odigrano' },
+              { icon: Trophy, value: totalGoals, label: 'Ukupno golova' },
+              { icon: Users, value: featured.length, label: 'Registrovanih igraca' },
+              { icon: Star, value: leaderWins, label: 'Pobjeda lider' }
+            ].map(({ icon: Icon, value, label }) => (
+              <div key={label} className="flex items-center justify-center gap-4 py-6 md:justify-start md:px-6">
+                <Icon className="text-emerald-400" size={18} />
+                <div>
+                  <p className="text-2xl font-black text-white">{value}</p>
+                  <p className="text-sm text-slate-500">{label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-4 py-10 lg:px-8">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.26em] text-emerald-400">Aktivna sezona</p>
+              <h2 className="mt-1 text-3xl font-black uppercase text-white">{data.season?.name || 'Nema aktivne sezone'}</h2>
+            </div>
+            <Link className="rounded-md border border-emerald-400/35 px-4 py-2 text-sm font-black uppercase tracking-[0.16em] text-emerald-400 transition hover:bg-emerald-400 hover:text-slate-950" to={data.season ? `/sezone/${data.season.id}` : '/sezone'}>
+              Otvori sezonu
+            </Link>
+          </div>
+
+          <div className="rounded-md border border-white/10 bg-[#10131b] p-4 md:p-6">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="h-px flex-1 bg-white/10" />
+              <p className="max-w-full truncate text-center text-xs font-black uppercase tracking-[0.18em] text-slate-400">
+                {leftTeam?.name || 'Gornja ekipa'} <span className="px-2 text-emerald-400">|</span> {rightTeam?.name || 'Donja ekipa'}
+              </p>
+              <div className="h-px flex-1 bg-white/10" />
+            </div>
+            <div className="grid items-center gap-5 lg:grid-cols-[1fr_auto_1fr]">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                {leftCards.map((player) => <GoldPlayerCard key={player.id} player={player} />)}
+                {!leftCards.length && <p className="col-span-full rounded-md border border-white/10 bg-white/5 p-4 text-sm text-slate-400">Admin nije izabrao kartice za {leftTeam?.name || 'prvu ekipu'}.</p>}
+              </div>
+              <div className="hidden h-full w-px bg-white/10 lg:block" />
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                {rightCards.map((player) => <GoldPlayerCard key={player.id} player={player} />)}
+                {!rightCards.length && <p className="col-span-full rounded-md border border-white/10 bg-white/5 p-4 text-sm text-slate-400">Admin nije izabrao kartice za {rightTeam?.name || 'drugu ekipu'}.</p>}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto grid max-w-7xl gap-6 px-4 pb-10 lg:grid-cols-[1.25fr_0.8fr] lg:px-8">
+          <div>
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-3xl font-black uppercase tracking-tight text-white">Zadnji rezultati</h2>
+              <Link className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-[0.2em] text-emerald-400" to="/rezultati">
+                Svi <ChevronRight size={14} />
+              </Link>
+            </div>
+            <div className="space-y-2">
+              {lastMatches.length ? lastMatches.map((match) => (
+                <Link key={match.id} to={`/rezultati/${match.id}`} className="grid items-center gap-4 rounded-md border border-white/10 bg-[#10131b] px-4 py-3 transition hover:border-emerald-400/40 md:grid-cols-[1fr_auto_1fr_auto]">
+                  <p className="text-right text-sm font-black uppercase text-white">{match.homeTeam.shortName || match.homeTeam.name}</p>
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="rounded-md bg-emerald-400 px-3 py-2 text-lg font-black text-slate-950">{match.homeScore}</span>
+                    <span className="text-slate-600">-</span>
+                    <span className="rounded-md bg-[#1b2030] px-3 py-2 text-lg font-black text-white">{match.awayScore}</span>
+                  </div>
+                  <p className="text-sm font-black uppercase text-slate-500">{match.awayTeam.shortName || match.awayTeam.name}</p>
+                  <p className="text-right text-xs leading-5 text-slate-500">{formatDateTime(match.playedAt)}</p>
+                </Link>
+              )) : (
+                <div className="rounded-md border border-white/10 bg-[#10131b] p-5 text-slate-400">Nema odigranih utakmica.</div>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-3xl font-black uppercase tracking-tight text-white">Strijelci</h2>
+              <Link className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-[0.2em] text-emerald-400" to="/igraci">
+                Svi <ChevronRight size={14} />
+              </Link>
+            </div>
+            <div className="rounded-md border border-white/10 bg-[#10131b]">
+              {topScorers.length ? topScorers.map((player, index) => (
+                <Link key={player.id} to={`/igraci/${player.id}`} className="grid grid-cols-[2rem_2.5rem_1fr_auto] items-center gap-3 border-b border-white/10 px-5 py-4 last:border-b-0">
+                  <span className={`font-black ${index === 0 ? 'text-emerald-400' : 'text-slate-500'}`}>{index + 1}</span>
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-white/10 text-[0.65rem] font-black text-white">
+                    {(player.firstName[0] || '') + (player.lastName[0] || '')}
+                  </span>
+                  <span>
+                    <span className="block font-black text-white">{player.firstName} {player.lastName}</span>
+                    <span className="text-sm text-slate-500">{player.team?.name || 'Ekipa'}</span>
+                  </span>
+                  <span className="text-right">
+                    <span className="block text-xl font-black text-white">{player.goals || 0}</span>
+                    <span className="text-[0.65rem] font-bold uppercase tracking-widest text-slate-500">Gol</span>
+                  </span>
+                </Link>
+              )) : (
+                <div className="p-5 text-slate-400">Nema izabranih igraca za prikaz strijelaca.</div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto grid max-w-7xl gap-5 px-4 pb-10 lg:grid-cols-2 lg:px-8">
+          <div className="rounded-md border border-white/10 bg-[#10131b] p-6">
+            <div className="mb-5 flex items-center gap-3 text-emerald-400">
+              <Trophy size={22} />
+              <p className="text-sm font-black uppercase tracking-[0.18em]">Rezultat prosle utakmice</p>
+            </div>
+            {last ? (
+              <>
+                <div className="grid items-center gap-4 md:grid-cols-[1fr_auto_1fr]">
+                  <div>
+                    <p className="text-sm font-bold uppercase tracking-[0.18em] text-slate-500">{last.homeTeam.shortName}</p>
+                    <h2 className="mt-2 text-2xl font-black uppercase text-white">{last.homeTeam.name}</h2>
+                  </div>
+                  <div className="rounded-md border border-white/10 bg-[#1a1d28] px-6 py-4 text-center text-5xl font-black text-emerald-400">
+                    {last.homeScore}:{last.awayScore}
+                  </div>
+                  <div className="md:text-right">
+                    <p className="text-sm font-bold uppercase tracking-[0.18em] text-slate-500">{last.awayTeam.shortName}</p>
+                    <h2 className="mt-2 text-2xl font-black uppercase text-white">{last.awayTeam.name}</h2>
+                  </div>
+                </div>
+                <p className="mt-5 text-sm text-slate-400">
+                  {last.winnerTeam ? (
+                    <>Pobjednik: <span className="font-black text-white">{last.winnerTeam.name}</span></>
+                  ) : (
+                    <span className="font-black text-white">Nerijesen mec</span>
+                  )}
+                </p>
+              </>
+            ) : (
+              <p className="text-slate-400">Jos nema unesene prethodne utakmice.</p>
+            )}
+          </div>
+
+          <div className="rounded-md border border-white/10 bg-[#10131b] p-6">
+            <div className="mb-5 flex items-center gap-3 text-emerald-400">
+              <CalendarClock size={22} />
+              <p className="text-sm font-black uppercase tracking-[0.18em]">Najava sljedece utakmice</p>
+            </div>
+            {next ? (
+              <>
+                <div className="rounded-md border border-white/10 bg-[#1a1d28] p-5">
+                  <p className="text-sm font-bold text-emerald-400">{formatDateTime(next.scheduledAt)}</p>
+                  <h2 className="mt-3 text-3xl font-black uppercase text-white">
+                    {next.homeTeam.name} vs {next.awayTeam.name}
+                  </h2>
+                  {next.venue && <p className="mt-3 text-sm text-slate-400">Lokacija: {next.venue}</p>}
+                </div>
+                {next.note && <p className="mt-4 text-slate-400">{next.note}</p>}
+              </>
+            ) : (
+              <p className="text-slate-400">Sljedeca utakmica jos nije najavljena.</p>
+            )}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-4 pb-12 lg:px-8">
+          <div className="mb-4 flex items-center gap-3">
+            <Newspaper className="text-emerald-400" size={22} />
+            <h2 className="text-2xl font-black uppercase text-white">Novosti i sadrzaj</h2>
+          </div>
+          <div className="grid gap-5 md:grid-cols-2">
+            {asArray(data.contentBlocks).map((block) => (
+              <div key={block.id} className="rounded-md border border-white/10 bg-[#10131b] p-5">
+                {block.imageUrl && <img className="mb-4 aspect-video w-full rounded-md object-cover" src={block.imageUrl} alt={block.title} />}
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-400">{block.type}</p>
+                <h3 className="mt-2 text-2xl font-black text-white">{block.title}</h3>
+                <p className="mt-3 whitespace-pre-line text-sm leading-6 text-slate-400">{block.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="px-4 py-8 lg:px-8">
@@ -139,12 +371,20 @@ export const Home = () => {
           <div>
             <h3 className="mb-4 text-lg font-black text-white">Home kartice igraca</h3>
             <div className="grid items-center gap-4 lg:grid-cols-[1fr_auto_1fr]">
-              <div className="grid grid-cols-3 gap-3 md:grid-cols-4">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 {leftCards.map((player) => <GoldPlayerCard key={player.id} player={player} />)}
                 {!leftCards.length && <p className="col-span-full rounded border border-white/10 bg-slate-950/45 p-4 text-sm text-slate-300">Admin nije izabrao kartice za {leftTeam?.name || 'prvu ekipu'}.</p>}
               </div>
-              <div className="rounded bg-orange-500 px-4 py-3 text-center text-2xl font-black text-blue-950">VS</div>
-              <div className="grid grid-cols-3 gap-3 md:grid-cols-4">
+              <div className="flex items-center gap-3 py-1">
+                <div className="h-px flex-1 bg-white/15" />
+                <div className="min-w-0 rounded border border-orange-300/30 bg-orange-500/10 px-3 py-1 text-center text-[0.65rem] font-black uppercase tracking-[0.12em] text-orange-200 sm:text-xs">
+                  <span className="inline-block max-w-[7.5rem] truncate align-bottom">{leftTeam?.name || 'Gornja ekipa'}</span>
+                  <span className="px-2 text-white/35">|</span>
+                  <span className="inline-block max-w-[7.5rem] truncate align-bottom">{rightTeam?.name || 'Donja ekipa'}</span>
+                </div>
+                <div className="h-px flex-1 bg-white/15" />
+              </div>
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 {rightCards.map((player) => <GoldPlayerCard key={player.id} player={player} />)}
                 {!rightCards.length && <p className="col-span-full rounded border border-white/10 bg-slate-950/45 p-4 text-sm text-slate-300">Admin nije izabrao kartice za {rightTeam?.name || 'drugu ekipu'}.</p>}
               </div>
@@ -157,7 +397,7 @@ export const Home = () => {
           <div className="absolute bottom-0 right-0 h-56 w-56 translate-x-16 translate-y-16 rounded-full border border-orange-300/20" />
           <div className="relative grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-orange-300">Football Face-Off</p>
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-orange-300">Duel Liga</p>
               <h1 className="mt-3 max-w-3xl text-4xl font-black leading-tight text-white md:text-6xl">
                 {next?.status === 'live' ? 'Mec je u toku' : 'Najava sledeceg meca'}
               </h1>

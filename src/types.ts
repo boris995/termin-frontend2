@@ -28,6 +28,9 @@ export interface Player {
   position: 'golman' | 'igrac' | 'golman-igrac';
   shirtNumber: number;
   cardImageUrl?: string | null;
+  cardImageX?: number;
+  cardImageY?: number;
+  cardImageScale?: number;
   galleryImages?: string[];
   pac: number;
   sho: number;
@@ -42,6 +45,18 @@ export interface Player {
   teamId: number;
   seasonId: number;
   team?: Team;
+  matchStats?: PlayerMatchStat[];
+}
+
+export interface PlayerMatchStat {
+  id: number;
+  matchId: number;
+  playerId: number;
+  teamId: number;
+  goals: number;
+  assists: number;
+  team?: Team;
+  match?: Match;
 }
 
 export interface Match {
@@ -106,4 +121,13 @@ export interface HomeData {
   nextMatch: NextMatch | null;
   homeFeaturedPlayers?: Player[];
   contentBlocks: CmsBlock[];
+  settings?: AppSettings;
+}
+
+export type CardDesign = 'standard' | 'gold';
+export type SiteDesign = 'classic' | 'premium';
+
+export interface AppSettings {
+  cardDesign: CardDesign;
+  siteDesign?: SiteDesign;
 }

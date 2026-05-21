@@ -1,4 +1,4 @@
-import { BarChart3, Calendar, FileText, Home, Shield, Trophy, Users } from 'lucide-react';
+import { BarChart3, Calendar, CalendarPlus, FilePlus, FileText, Home, ListChecks, Settings, Shield, Trophy, Users } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
 
 const links = [
@@ -8,7 +8,11 @@ const links = [
   { to: '/seasons/1/teams', label: 'Timovi', icon: Shield },
   { to: '/seasons/1/players', label: 'Igrači', icon: Users },
   { to: '/seasons/1/matches', label: 'Mečevi', icon: Calendar },
-  { to: '/cms', label: 'CMS', icon: FileText }
+  { to: '/cms/settings', label: 'Dizajn', icon: Settings },
+  { to: '/cms/content', label: 'Dodaj sadrzaj', icon: FilePlus },
+  { to: '/cms/next-match', label: 'Najavi mec', icon: CalendarPlus },
+  { to: '/cms/blocks', label: 'Objavljeni blokovi', icon: FileText },
+  { to: '/cms/next-matches', label: 'Najave utakmica', icon: ListChecks }
 ];
 
 export const AppLayout = () => (
@@ -19,8 +23,8 @@ export const AppLayout = () => (
           <Trophy size={22} />
         </div>
         <div>
-          <p className="text-sm uppercase tracking-[0.22em] text-orange-300">Face-Off</p>
-          <h1 className="text-lg font-bold">Football Duel</h1>
+          <p className="text-sm uppercase tracking-[0.22em] text-orange-300">Liga</p>
+          <h1 className="text-lg font-bold">Duel Liga</h1>
         </div>
       </div>
       <nav className="space-y-2">

@@ -9,8 +9,8 @@ import { Player } from '../types';
 import { setSeo } from '../utils/seo';
 
 const PlayerCard = ({ player }: { player: Player }) => (
-  <Link to={`/igraci/${player.id}`} className="block w-full max-w-[360px] transition hover:-translate-y-1">
-    <GoldPlayerCard player={player} className="max-w-[360px]" />
+  <Link to={`/igraci/${player.id}`} className="block w-full transition hover:-translate-y-1">
+    <GoldPlayerCard player={player} />
   </Link>
 );
 
@@ -22,7 +22,7 @@ export const PublicPlayers = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    setSeo('Igraci | Football Face-Off', 'Pregled igraca, FIFA-style kartice, ocjene i statistika.');
+    setSeo('Igraci | Duel Liga', 'Pregled igraca, kartice, ocjene i statistika.');
     api.get(`/seasons/${seasonId}/players`).then(unwrap<Player[]>).then((items) => {
       setPlayers(asArray(items));
       setError('');
@@ -54,7 +54,7 @@ export const PublicPlayers = () => {
         </header>
         {error && <ErrorPanel message={error} />}
 
-        <div className="mb-8 grid grid-cols-2 justify-items-center gap-3 sm:gap-5 lg:grid-cols-3 xl:gap-6">
+        <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:gap-6">
           {filteredPlayers.map((player) => (
             <PlayerCard key={player.id} player={player} />
           ))}

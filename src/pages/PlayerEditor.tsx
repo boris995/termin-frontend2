@@ -5,11 +5,27 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api, unwrap } from '../api/client';
 import { assetUrl } from '../api/assets';
 import { Button, Input, PageTitle, Panel, Select } from '../components/ui';
+import { GoldPlayerCard } from '../components/GoldPlayerCard';
 import { Player } from '../types';
 
 type PlayerForm = Pick<
   Player,
-  'firstName' | 'lastName' | 'nickname' | 'position' | 'shirtNumber' | 'cardImageUrl' | 'galleryImages' | 'pac' | 'sho' | 'pas' | 'dri' | 'def' | 'phy'
+  | 'firstName'
+  | 'lastName'
+  | 'nickname'
+  | 'position'
+  | 'shirtNumber'
+  | 'cardImageUrl'
+  | 'cardImageX'
+  | 'cardImageY'
+  | 'cardImageScale'
+  | 'galleryImages'
+  | 'pac'
+  | 'sho'
+  | 'pas'
+  | 'dri'
+  | 'def'
+  | 'phy'
 >;
 
 const ratingKeys = ['pac', 'sho', 'pas', 'dri', 'def', 'phy'] as const;
@@ -33,6 +49,9 @@ export const PlayerEditor = () => {
       position: data.position,
       shirtNumber: data.shirtNumber,
       cardImageUrl: data.cardImageUrl || '',
+      cardImageX: data.cardImageX ?? 0,
+      cardImageY: data.cardImageY ?? 0,
+      cardImageScale: data.cardImageScale ?? 1,
       galleryImages: data.galleryImages || [],
       pac: data.pac,
       sho: data.sho,
@@ -73,14 +92,15 @@ export const PlayerEditor = () => {
       ...values,
       nickname: values.nickname || null,
       shirtNumber: Number(values.shirtNumber),
+      cardImageX: Number(values.cardImageX ?? 0),
+      cardImageY: Number(values.cardImageY ?? 0),
+      cardImageScale: Number(values.cardImageScale ?? 1),
       galleryImages: gallery,
       ...Object.fromEntries(ratingKeys.map((key) => [key, Number(values[key])]))
     });
     setMessage('Igrac je sacuvan.');
     await load();
   };
-
-  const cardImage = watch('cardImageUrl');
 
   if (!player) {
     return (
@@ -90,6 +110,21 @@ export const PlayerEditor = () => {
       </>
     );
   }
+
+  const cardImage = watch('cardImageUrl');
+  const previewPlayer: Player = {
+    ...player,
+    firstName: watch('firstName') || player.firstName,
+    lastName: watch('lastName') || player.lastName,
+    nickname: watch('nickname') || player.nickname,
+    position: watch('position') || player.position,
+    shirtNumber: Number(watch('shirtNumber') || player.shirtNumber),
+    cardImageUrl: cardImage || player.cardImageUrl,
+    cardImageX: Number(watch('cardImageX') ?? player.cardImageX ?? 0),
+    cardImageY: Number(watch('cardImageY') ?? player.cardImageY ?? 0),
+    cardImageScale: Number(watch('cardImageScale') ?? player.cardImageScale ?? 1),
+    galleryImages: gallery
+  };
 
   return (
     <>
@@ -104,14 +139,45 @@ export const PlayerEditor = () => {
       </div>
       <div className="grid gap-5 xl:grid-cols-[360px_1fr]">
         <Panel>
-          <div className="rounded-lg border border-orange-300/40 bg-gradient-to-br from-orange-400 via-orange-600 to-blue-950 p-4">
-            <img className="mx-auto h-72 w-full object-contain" src={assetUrl(cardImage || player.cardImageUrl || '/player-assets/player-card.svg')} alt={player.firstName} />
+          <div className="mx-auto max-w-[260px]">
+            <GoldPlayerCard player={previewPlayer} />
           </div>
           <label className="mt-4 flex cursor-pointer items-center justify-center gap-2 rounded bg-orange-500 px-4 py-2 text-sm font-black text-blue-950 hover:bg-orange-400">
             <Upload size={18} />
             Upload card slike
             <input className="hidden" type="file" accept="image/*" onChange={(event) => uploadImage(event, 'card')} />
           </label>
+          <div className="mt-4 space-y-4">
+            <label className="block">
+              <span className="mb-1 flex items-center justify-between text-xs font-black uppercase tracking-widest text-orange-300">
+                Slika X <span>{Number(watch('cardImageX') ?? 0)}</span>
+              </span>
+              <input className="w-full" type="range" min={-50} max={50} step={1} {...register('cardImageX', { valueAsNumber: true })} />
+            </label>
+            <label className="block">
+              <span className="mb-1 flex items-center justify-between text-xs font-black uppercase tracking-widest text-orange-300">
+                Slika Y <span>{Number(watch('cardImageY') ?? 0)}</span>
+              </span>
+              <input className="w-full" type="range" min={-50} max={50} step={1} {...register('cardImageY', { valueAsNumber: true })} />
+            </label>
+            <label className="block">
+              <span className="mb-1 flex items-center justify-between text-xs font-black uppercase tracking-widest text-orange-300">
+                Zoom <span>{Number(watch('cardImageScale') ?? 1).toFixed(2)}x</span>
+              </span>
+              <input className="w-full" type="range" min={0.6} max={2.2} step={0.05} {...register('cardImageScale', { valueAsNumber: true })} />
+            </label>
+            <button
+              type="button"
+              className="w-full rounded border border-white/10 px-3 py-2 text-sm font-bold text-slate-200 hover:bg-white/10"
+              onClick={() => {
+                setValue('cardImageX', 0, { shouldDirty: true });
+                setValue('cardImageY', 0, { shouldDirty: true });
+                setValue('cardImageScale', 1, { shouldDirty: true });
+              }}
+            >
+              Reset pozicije slike
+            </button>
+          </div>
         </Panel>
 
         <Panel>

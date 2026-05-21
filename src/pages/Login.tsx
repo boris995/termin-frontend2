@@ -32,7 +32,7 @@ export const Login = () => {
       <Panel className="w-full max-w-md">
         <div className="mb-6">
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-orange-300">Admin ulaz</p>
-          <h1 className="mt-2 text-3xl font-black">Football Face-Off</h1>
+          <h1 className="mt-2 text-3xl font-black">Duel Liga</h1>
           <p className="mt-2 text-sm text-slate-400">Prijavi se za dashboard, CMS i unos rezultata.</p>
         </div>
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
