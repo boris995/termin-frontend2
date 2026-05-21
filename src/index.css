@@ -60,6 +60,109 @@ body.theme-classic .classic-panel .border-white\/10 {
   border-color: rgba(80, 77, 67, 0.45);
 }
 
+body.theme-classic .admin-classic main {
+  background:
+    linear-gradient(rgba(80, 77, 67, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(80, 77, 67, 0.04) 1px, transparent 1px),
+    #d8d2c3;
+  background-size: 34px 34px;
+}
+
+body.theme-classic .admin-classic .classic-panel {
+  border-radius: 0.45rem;
+  box-shadow:
+    inset 0 0 0 1px rgba(244, 237, 221, 0.70),
+    4px 4px 0 rgba(80, 77, 67, 0.16);
+}
+
+body.theme-classic .admin-classic table {
+  color: #2d2c27;
+}
+
+body.theme-classic .admin-classic thead {
+  color: #504d43;
+}
+
+body.theme-classic .admin-classic tbody {
+  border-color: rgba(80, 77, 67, 0.38);
+}
+
+body.theme-classic .admin-classic tr {
+  border-color: rgba(80, 77, 67, 0.30);
+}
+
+body.theme-classic .admin-classic textarea {
+  border: 1px solid rgba(80, 77, 67, 0.70);
+  background: #f4eddd;
+  color: #2d2c27;
+}
+
+body.theme-classic .admin-classic textarea::placeholder {
+  color: #7a7466;
+}
+
+body.theme-classic .admin-classic .text-white,
+body.theme-classic .admin-classic .text-slate-100,
+body.theme-classic .admin-classic .text-slate-200 {
+  color: #2d2c27;
+}
+
+body.theme-classic .admin-classic .text-slate-300,
+body.theme-classic .admin-classic .text-slate-400,
+body.theme-classic .admin-classic .text-slate-500 {
+  color: #5f5a4f;
+}
+
+body.theme-classic .admin-classic .text-orange-300,
+body.theme-classic .admin-classic .text-orange-200 {
+  color: #8f332d;
+}
+
+body.theme-classic .admin-classic .bg-slate-950,
+body.theme-classic .admin-classic .bg-slate-950\/40,
+body.theme-classic .admin-classic .bg-slate-950\/45,
+body.theme-classic .admin-classic .bg-slate-950\/50,
+body.theme-classic .admin-classic .bg-slate-950\/60,
+body.theme-classic .admin-classic .bg-blue-950\/70,
+body.theme-classic .admin-classic .bg-blue-950\/80,
+body.theme-classic .admin-classic .bg-white\/5,
+body.theme-classic .admin-classic .bg-white\/10 {
+  background-color: rgba(244, 237, 221, 0.78);
+}
+
+body.theme-classic .admin-classic .hover\:bg-white\/10:hover,
+body.theme-classic .admin-classic .hover\:bg-white\/15:hover {
+  background-color: rgba(80, 77, 67, 0.14);
+}
+
+body.theme-classic .admin-classic .border-white\/10 {
+  border-color: rgba(80, 77, 67, 0.45);
+}
+
+body.theme-classic .admin-classic .divide-white\/10 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(80, 77, 67, 0.32);
+}
+
+body.theme-classic .admin-classic .bg-orange-500 {
+  background-color: #8f332d;
+}
+
+body.theme-classic .admin-classic .hover\:bg-orange-400:hover {
+  background-color: #6f2824;
+}
+
+body.theme-classic .admin-classic .text-blue-950 {
+  color: #f4eddd;
+}
+
+body.theme-classic .admin-classic input[type='checkbox'] {
+  accent-color: #8f332d;
+}
+
+body.theme-classic .admin-classic input[type='range'] {
+  accent-color: #8f332d;
+}
+
 button,
 input,
 select {
