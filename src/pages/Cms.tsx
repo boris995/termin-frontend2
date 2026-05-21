@@ -1,10 +1,10 @@
-import { CalendarPlus, FilePlus, Pencil, Play, Square, Trash2 } from 'lucide-react';
+import { CalendarPlus, FilePlus, HeartHandshake, Pencil, Play, Save, Square, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { api, asArray, getApiErrorMessage, unwrap } from '../api/client';
 import { useCardDesign } from '../components/CardDesignProvider';
 import { Button, ErrorPanel, Input, PageTitle, Panel, Select } from '../components/ui';
-import { AppSettings, CardDesign, CmsBlock, NextMatch, Player, Season, SiteDesign, Team } from '../types';
+import { AppSettings, CardDesign, CmsBlock, DonationPage, NextMatch, Player, Season, SiteDesign, Team } from '../types';
 import { formatDateTime } from '../utils/date';
 
 interface BlockForm {
@@ -24,7 +24,24 @@ interface NextMatchForm {
   note?: string;
 }
 
-export type CmsSection = 'settings' | 'content' | 'next-match' | 'blocks' | 'next-matches' | 'all';
+const donationDefaults: DonationPage = {
+  eyebrow: 'Podrzi ligu',
+  title: 'Donacije za Duel Ligu',
+  intro: 'Svaka donacija pomaze da utakmice imaju bolju organizaciju, kvalitetniju opremu i sadrzaj koji publika moze da prati iz kola u kolo.',
+  impactTitle: 'Za sta se koristi podrska',
+  impactBody: 'Donacije se koriste za termine, lopte, marker opremu, osnovnu medicinsku opremu, snimanje najzanimljivijih trenutaka i odrzavanje platforme sa rezultatima, statistikama i najavama.',
+  paymentTitle: 'Kako mozes donirati',
+  paymentBody: 'Uplatu mozes poslati direktno na racun lige ili kontaktirati administratore ako zelis da podrzis konkretan termin, opremu ili medijski sadrzaj.',
+  bankAccount: 'RS35 0000 0000 0000 0000 00',
+  recipientName: 'Duel Liga',
+  paymentPurpose: 'Donacija za organizaciju lige',
+  ctaLabel: 'Kontakt za donaciju',
+  ctaUrl: 'mailto:admin@football.com',
+  imageUrl: '',
+  isPublished: true
+};
+
+export type CmsSection = 'settings' | 'donation' | 'content' | 'next-match' | 'blocks' | 'next-matches' | 'all';
 
 export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
   const { cardDesign, siteDesign, setCardDesign, setSiteDesign } = useCardDesign();
@@ -38,10 +55,12 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
   const [finishForms, setFinishForms] = useState<Record<number, { homeScore: number; awayScore: number; votingEnabled: boolean; participants: number[]; stats: Record<number, { goals: number; assists: number }> }>>({});
   const blockForm = useForm<BlockForm>({ defaultValues: { title: '', body: '', type: 'news', imageUrl: '', sortOrder: 0 } });
   const nextForm = useForm<NextMatchForm>({ defaultValues: { seasonId: 1, homeTeamId: 0, awayTeamId: 0, scheduledAt: '', venue: '', note: '' } });
+  const donationForm = useForm<DonationPage>({ defaultValues: donationDefaults });
 
   const load = async (seasonOverride?: number) => {
-    const [settings, cmsBlocks, scheduled, seasonList] = await Promise.all([
+    const [settings, donationPage, cmsBlocks, scheduled, seasonList] = await Promise.all([
       api.get('/cms/settings').then(unwrap<AppSettings>),
+      api.get('/cms/donation-page').then(unwrap<DonationPage>),
       api.get('/cms/blocks').then(unwrap<CmsBlock[]>),
       api.get('/cms/next-matches').then(unwrap<NextMatch[]>),
       api.get('/seasons').then(unwrap<Season[]>)
@@ -61,6 +80,7 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
     const availableTeams = asArray(seasonTeams);
     setCardDesign(settings.cardDesign || 'standard');
     setSiteDesign(settings.siteDesign || 'classic');
+    donationForm.reset({ ...donationDefaults, ...donationPage });
     setBlocks(asArray(cmsBlocks));
     setNextMatches(asArray(scheduled));
     setSeasons(availableSeasons);
@@ -102,6 +122,12 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
   const saveSiteDesign = async (design: SiteDesign) => {
     const settings = unwrap<AppSettings>(await api.put('/cms/settings', { siteDesign: design }));
     setSiteDesign(settings.siteDesign || 'classic');
+  };
+
+  const saveDonationPage = async (values: DonationPage) => {
+    const saved = unwrap<DonationPage>(await api.put('/cms/donation-page', values));
+    donationForm.reset({ ...donationDefaults, ...saved });
+    setError('');
   };
 
   const startEditBlock = (block: CmsBlock) => {
@@ -203,6 +229,7 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
   };
 
   const showSettings = section === 'all' || section === 'settings';
+  const showDonation = section === 'all' || section === 'donation';
   const showContentForm = section === 'all' || section === 'content';
   const showNextMatchForm = section === 'all' || section === 'next-match';
   const showBlocks = section === 'all' || section === 'blocks';
@@ -210,6 +237,7 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
   const pageTitle = {
     all: 'CMS sadrzaj za home page',
     settings: 'Dizajn i postavke',
+    donation: 'Donacija stranica',
     content: 'Dodaj sadrzaj',
     'next-match': 'Najava sljedece utakmice',
     blocks: 'Objavljeni blokovi',
@@ -259,6 +287,57 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
             </div>
           </div>
         </div>
+      </Panel>}
+      {showDonation && <Panel className="mb-5">
+        <div className="mb-4 border-b border-white/10 pb-3">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-300">Donacije</p>
+          <h3 className="mt-1 text-lg font-black">Sadrzaj javne donacija stranice</h3>
+        </div>
+        <form className="space-y-4" onSubmit={donationForm.handleSubmit((values) => saveDonationPage(values).catch((err) => setError(getApiErrorMessage(err, 'Donacija stranica nije sacuvana.'))))}>
+          <div className="grid gap-3 md:grid-cols-2">
+            <Input placeholder="Eyebrow tekst" {...donationForm.register('eyebrow', { required: true })} />
+            <Input placeholder="Naslov stranice" {...donationForm.register('title', { required: true })} />
+          </div>
+          <textarea
+            className="min-h-24 w-full rounded border border-white/10 bg-blue-950/80 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-orange-400"
+            placeholder="Uvodni tekst"
+            {...donationForm.register('intro', { required: true })}
+          />
+          <div className="grid gap-3 md:grid-cols-2">
+            <Input placeholder="Naslov bloka: uticaj donacije" {...donationForm.register('impactTitle', { required: true })} />
+            <Input placeholder="Naslov bloka: uplata" {...donationForm.register('paymentTitle', { required: true })} />
+          </div>
+          <div className="grid gap-3 lg:grid-cols-2">
+            <textarea
+              className="min-h-32 w-full rounded border border-white/10 bg-blue-950/80 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-orange-400"
+              placeholder="Tekst o tome za sta se koristi donacija"
+              {...donationForm.register('impactBody', { required: true })}
+            />
+            <textarea
+              className="min-h-32 w-full rounded border border-white/10 bg-blue-950/80 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-orange-400"
+              placeholder="Tekst za instrukcije uplate"
+              {...donationForm.register('paymentBody', { required: true })}
+            />
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            <Input placeholder="Primalac" {...donationForm.register('recipientName')} />
+            <Input placeholder="Racun / IBAN" {...donationForm.register('bankAccount')} />
+            <Input placeholder="Svrha uplate" {...donationForm.register('paymentPurpose')} />
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            <Input placeholder="CTA label" {...donationForm.register('ctaLabel')} />
+            <Input placeholder="CTA URL / mailto" {...donationForm.register('ctaUrl')} />
+            <Input placeholder="URL slike opcionalno" {...donationForm.register('imageUrl')} />
+          </div>
+          <label className="flex items-center gap-2 rounded border border-white/10 bg-slate-950/40 px-3 py-2 text-sm font-bold text-slate-200">
+            <input type="checkbox" {...donationForm.register('isPublished')} />
+            Stranica je objavljena
+          </label>
+          <Button type="submit" className="w-full md:w-auto">
+            <Save size={18} />
+            Sacuvaj donacija stranicu
+          </Button>
+        </form>
       </Panel>}
       <div className="space-y-5">
         {showContentForm && <Panel>

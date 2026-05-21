@@ -13,6 +13,7 @@ import { Matches } from './pages/Matches';
 import { Players } from './pages/Players';
 import { PlayerEditor } from './pages/PlayerEditor';
 import { PublicAnnouncement } from './pages/PublicAnnouncement';
+import { PublicDonation } from './pages/PublicDonation';
 import { PublicPlayerDetail } from './pages/PublicPlayerDetail';
 import { PublicPlayers } from './pages/PublicPlayers';
 import { PublicMatchDetail } from './pages/PublicMatchDetail';
@@ -39,6 +40,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="igraci" element={<PublicPlayers />} />
             <Route path="igraci/:id" element={<PublicPlayerDetail />} />
             <Route path="najava" element={<PublicAnnouncement />} />
+            <Route path="donacije" element={<PublicDonation />} />
           </Route>
           <Route path="/" element={<ProtectedRoute />}>
             <Route path="/" element={<AppLayout />}>
@@ -46,6 +48,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="cms" element={<Navigate to="/cms/settings" replace />} />
               <Route path="cms/settings" element={<Cms section="settings" />} />
               <Route path="cms/content" element={<Cms section="content" />} />
+              <Route path="cms/donation" element={<Cms section="donation" />} />
               <Route path="cms/next-match" element={<Cms section="next-match" />} />
               <Route path="cms/blocks" element={<Cms section="blocks" />} />
               <Route path="cms/next-matches" element={<Cms section="next-matches" />} />

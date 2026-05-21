@@ -1,4 +1,4 @@
-import { BarChart3, CalendarClock, Home, ListOrdered, LogIn, Menu, Newspaper, Trophy, Users, X } from 'lucide-react';
+import { BarChart3, CalendarClock, HeartHandshake, Home, ListOrdered, LogIn, Menu, Newspaper, Trophy, Users, X } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useCardDesign } from './CardDesignProvider';
@@ -8,7 +8,8 @@ const links = [
   { to: '/sezone', label: 'Sezone', icon: Trophy },
   { to: '/rezultati', label: 'Rezultati', icon: ListOrdered },
   { to: '/igraci', label: 'Igraci', icon: Users },
-  { to: '/najava', label: 'Najava', icon: CalendarClock }
+  { to: '/najava', label: 'Najava', icon: CalendarClock },
+  { to: '/donacije', label: 'Donacije', icon: HeartHandshake }
 ];
 
 export const PublicLayout = () => {
@@ -144,7 +145,7 @@ export const PublicLayout = () => {
         isPremium ? 'border-emerald-400/15 bg-[#05070b]' : 'border-[#504d43] bg-[#ebe4d4]'
       }`}
       >
-        <div className="grid grid-cols-5 px-1 py-2">
+        <div className="grid grid-cols-6 px-1 py-2">
           {links.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}

@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import type { CSSProperties } from 'react';
 import { assetUrl } from '../api/assets';
 import { useCardDesign } from './CardDesignProvider';
 import { Player } from '../types';
@@ -19,6 +21,81 @@ const playerImage = (player: Player) => {
   const image = player.cardImageUrl || '';
   if (image && !image.includes('/player-assets/player-card.svg')) return image;
   return galleryImages(player.galleryImages)[0] || '/player-assets/player-photo.svg';
+};
+
+const initialsFor = (player: Player) => `${player.firstName?.[0] || ''}${player.lastName?.[0] || ''}` || '#';
+
+const generatedPlayerPlaceholder = (player: Player) => {
+  const initials = initialsFor(player);
+  const teamColor = player.team?.primaryColor || '#8f332d';
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1040">
+      <defs>
+        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0" stop-color="#f4eddd"/>
+          <stop offset="0.52" stop-color="#d8d2c3"/>
+          <stop offset="1" stop-color="${teamColor}"/>
+        </linearGradient>
+        <radialGradient id="light" cx="50%" cy="22%" r="70%">
+          <stop offset="0" stop-color="#ffffff" stop-opacity="0.72"/>
+          <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="800" height="1040" fill="url(#bg)"/>
+      <circle cx="400" cy="325" r="150" fill="#f4eddd" opacity="0.95"/>
+      <path d="M190 1040c36-244 118-366 210-366s174 122 210 366z" fill="#2d2c27" opacity="0.72"/>
+      <circle cx="400" cy="390" r="270" fill="url(#light)"/>
+      <text x="400" y="360" text-anchor="middle" font-family="Arial, sans-serif" font-size="150" font-weight="900" fill="#2d2c27">${initials}</text>
+      <text x="400" y="690" text-anchor="middle" font-family="Arial, sans-serif" font-size="46" font-weight="900" fill="#f4eddd">${player.shirtNumber}</text>
+    </svg>
+  `;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+};
+
+const imageSrcFor = (player: Player) => {
+  const raw = playerImage(player);
+  if (raw.startsWith('/player-assets/player-photo.svg')) return generatedPlayerPlaceholder(player);
+  return assetUrl(raw);
+};
+
+const PlayerCardImage = ({
+  player,
+  className,
+  style,
+  compact = false
+}: {
+  player: Player;
+  className: string;
+  style?: CSSProperties;
+  compact?: boolean;
+}) => {
+  const [failed, setFailed] = useState(false);
+  const src = imageSrcFor(player);
+
+  if (!src || failed) {
+    return (
+      <div className={`${className} grid place-items-center`} style={style}>
+        <div className="flex h-full w-full flex-col items-center justify-center bg-[radial-gradient(circle_at_50%_20%,rgba(255,255,255,0.55),transparent_12rem),linear-gradient(145deg,rgba(80,77,67,0.18),rgba(143,51,45,0.16))] text-center">
+          <div className={`${compact ? 'h-16 w-16 text-2xl' : 'h-24 w-24 text-4xl'} grid place-items-center rounded-full border-2 border-current bg-white/35 font-black uppercase`}>
+            {initialsFor(player)}
+          </div>
+          <p className={`${compact ? 'mt-2 text-[0.55rem]' : 'mt-4 text-[0.68rem]'} max-w-[80%] truncate font-black uppercase tracking-[0.14em] opacity-80`}>
+            {player.firstName} {player.lastName}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      className={className}
+      style={style}
+      src={src}
+      alt={`${player.firstName} ${player.lastName}`}
+      onError={() => setFailed(true)}
+    />
+  );
 };
 
 export const GoldPlayerCard = ({
@@ -56,11 +133,10 @@ export const GoldPlayerCard = ({
               <div className="absolute left-[6%] top-[5%] z-20 grid h-[15%] w-[18%] place-items-center rounded-full border border-[#504d43] bg-[#ebe4d4] text-[0.7rem] font-black">
                 ⚽
               </div>
-              <img
+              <PlayerCardImage
+                player={player}
                 className="h-full w-full object-cover object-top drop-shadow-xl"
                 style={{ transform: imageTransform }}
-                src={assetUrl(playerImage(player))}
-                alt={`${player.firstName} ${player.lastName}`}
               />
             </div>
 
@@ -157,11 +233,11 @@ export const GoldPlayerCard = ({
         </div>
 
         <div className="absolute left-1/2 top-2 z-10 h-[56%] w-[56%] -translate-x-1/2 overflow-visible pt-2 sm:h-[57%] sm:w-[58%]">
-          <img
+          <PlayerCardImage
+            player={player}
             className="h-full w-full object-contain object-top drop-shadow-2xl"
             style={{ transform: imageTransform }}
-            src={assetUrl(playerImage(player))}
-            alt={`${player.firstName} ${player.lastName}`}
+            compact
           />
         </div>
 
@@ -216,11 +292,11 @@ export const GoldPlayerCard = ({
       <p className="mt-0.5 truncate font-black uppercase text-[0.48rem] sm:text-[0.58rem] lg:text-[0.68rem]">{player.team?.shortName}</p>
     </div>
 
-    <img
+    <PlayerCardImage
+      player={player}
       className="absolute left-1/2 top-2 z-10 h-[53%] w-[58%] -translate-x-1/2 object-contain object-top drop-shadow-2xl sm:h-[55%] sm:w-[60%]"
       style={{ transform: `translateX(-50%) ${imageTransform}` }}
-      src={assetUrl(playerImage(player))}
-      alt={`${player.firstName} ${player.lastName}`}
+      compact
     />
 
     <div className="absolute bottom-[24%] left-1/2 z-20 w-[86%] -translate-x-1/2 text-center text-[#1f2937] drop-shadow-[0_1px_1px_rgba(255,255,255,0.65)]">

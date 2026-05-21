@@ -19,6 +19,17 @@ const ratingKeys = [
   ['PHY', 'phy']
 ] as const;
 
+const galleryImages = (value?: string[] | string | null): string[] => {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    return value
+      .split(/[,\s]+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
 export const PublicPlayerDetail = () => {
   const { id = '1' } = useParams();
   const { siteDesign } = useCardDesign();
@@ -54,7 +65,10 @@ export const PublicPlayerDetail = () => {
     );
   }
 
-  const gallery = player.galleryImages?.length ? player.galleryImages : ['/player-assets/player-photo.svg?photo=1', '/player-assets/player-photo.svg?photo=2'];
+  const normalizedGallery = galleryImages(player.galleryImages);
+  const gallery = normalizedGallery.length
+    ? normalizedGallery
+    : ['/player-assets/player-photo.svg?photo=1', '/player-assets/player-photo.svg?photo=2'];
   const isPremium = siteDesign === 'premium';
   const latestStats = player.matchStats || [];
   const opponentName = (statTeamId: number, match?: Match) => {

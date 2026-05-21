@@ -131,3 +131,20 @@ export interface AppSettings {
   cardDesign: CardDesign;
   siteDesign?: SiteDesign;
 }
+
+export interface DonationPage {
+  eyebrow: string;
+  title: string;
+  intro: string;
+  impactTitle: string;
+  impactBody: string;
+  paymentTitle: string;
+  paymentBody: string;
+  bankAccount?: string | null;
+  recipientName?: string | null;
+  paymentPurpose?: string | null;
+  ctaLabel?: string | null;
+  ctaUrl?: string | null;
+  imageUrl?: string | null;
+  isPublished: boolean;
+}
