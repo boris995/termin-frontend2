@@ -4,8 +4,7 @@ import { Link } from 'react-router-dom';
 import { api, unwrap } from '../api/client';
 import { GoldPlayerCard } from '../components/GoldPlayerCard';
 import { SeasonSelector } from '../components/SeasonSelector';
-import { Panel } from '../components/ui';
-import { fallbackPlayers } from '../data/fallback';
+import { ErrorPanel, Panel } from '../components/ui';
 import { Player } from '../types';
 import { setSeo } from '../utils/seo';
 
@@ -16,14 +15,18 @@ const PlayerCard = ({ player }: { player: Player }) => (
 );
 
 export const PublicPlayers = () => {
-  const [players, setPlayers] = useState<Player[]>(fallbackPlayers);
+  const [players, setPlayers] = useState<Player[]>([]);
   const [teamFilter, setTeamFilter] = useState('all');
   const [positionFilter, setPositionFilter] = useState('all');
   const [seasonId, setSeasonId] = useState(1);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     setSeo('Igraci | Football Face-Off', 'Pregled igraca, FIFA-style kartice, ocjene i statistika.');
-    api.get(`/seasons/${seasonId}/players`).then(unwrap<Player[]>).then((items) => setPlayers(items.length ? items : fallbackPlayers)).catch(() => undefined);
+    api.get(`/seasons/${seasonId}/players`).then(unwrap<Player[]>).then((items) => {
+      setPlayers(items);
+      setError('');
+    }).catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
   }, [seasonId]);
 
   const filteredPlayers = useMemo(
@@ -49,11 +52,13 @@ export const PublicPlayers = () => {
           </div>
           <SeasonSelector value={seasonId} onChange={setSeasonId} />
         </header>
+        {error && <ErrorPanel message={error} />}
 
         <div className="mb-8 grid grid-cols-2 justify-items-center gap-3 sm:gap-5 lg:grid-cols-3 xl:gap-6">
           {filteredPlayers.map((player) => (
             <PlayerCard key={player.id} player={player} />
           ))}
+          {!filteredPlayers.length && !error && <Panel className="col-span-full w-full">Nema igraca iz backend-a.</Panel>}
         </div>
 
         <Panel className="mb-6">

@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import { api, unwrap } from '../api/client';
-import { fallbackSeason } from '../data/fallback';
 import { Season } from '../types';
 
 export const SeasonSelector = ({ value, onChange }: { value: number; onChange: (seasonId: number) => void }) => {
-  const [seasons, setSeasons] = useState<Season[]>([fallbackSeason]);
+  const [seasons, setSeasons] = useState<Season[]>([]);
 
   useEffect(() => {
-    api.get('/seasons').then(unwrap<Season[]>).then((items) => items.length && setSeasons(items)).catch(() => undefined);
+    api.get('/seasons').then(unwrap<Season[]>).then(setSeasons).catch((error) => console.error('Sezone nisu ucitane:', error));
   }, []);
 
   return (
@@ -16,6 +15,7 @@ export const SeasonSelector = ({ value, onChange }: { value: number; onChange: (
       value={value}
       onChange={(event) => onChange(Number(event.target.value))}
     >
+      {!seasons.length && <option value={value}>Nema sezona iz backend-a</option>}
       {seasons.map((season) => (
         <option key={season.id} value={season.id}>
           {season.name}

@@ -11,6 +11,13 @@ export const PageTitle = ({ eyebrow, title }: { eyebrow: string; title: string }
   </div>
 );
 
+export const ErrorPanel = ({ message }: { message: string }) => (
+  <Panel className="border-red-500/30 bg-red-950/40">
+    <p className="text-xs font-black uppercase tracking-[0.18em] text-red-300">API greska</p>
+    <p className="mt-2 break-words text-sm font-bold text-red-100">{message}</p>
+  </Panel>
+);
+
 export const StatPill = ({ label, value }: { label: string; value: string | number }) => (
   <div className="rounded border border-white/10 bg-slate-950/60 px-4 py-3">
     <p className="text-xs uppercase tracking-widest text-slate-400">{label}</p>

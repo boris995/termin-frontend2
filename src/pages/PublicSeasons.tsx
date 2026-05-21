@@ -2,33 +2,43 @@ import { Flag, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, unwrap } from '../api/client';
-import { PageTitle, Panel, StatPill } from '../components/ui';
-import { fallbackSeason, fallbackTeams } from '../data/fallback';
+import { ErrorPanel, PageTitle, Panel, StatPill } from '../components/ui';
 import { DashboardData, Season } from '../types';
 import { setSeo } from '../utils/seo';
 
 export const PublicSeasons = () => {
-  const [seasons, setSeasons] = useState<Season[]>([fallbackSeason]);
+  const [seasons, setSeasons] = useState<Season[]>([]);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     setSeo('Sezone | Football Face-Off', 'Pregled sezona, trka do titule i tabela pobjeda.');
-    api.get('/seasons').then(unwrap<Season[]>).then((items) => items.length && setSeasons(items)).catch(() => undefined);
-    api.get('/dashboard/season/1').then(unwrap<DashboardData>).then(setDashboard).catch(() => undefined);
+    Promise.all([
+      api.get('/seasons').then(unwrap<Season[]>),
+      api.get('/dashboard/season/1').then(unwrap<DashboardData>)
+    ]).then(([seasonData, dashboardData]) => {
+      setSeasons(seasonData);
+      setDashboard(dashboardData);
+      setError('');
+    }).catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
   }, []);
 
-  const active = dashboard?.season || seasons.find((season) => season.status === 'active') || fallbackSeason;
-  const teams = dashboard?.teams?.length ? dashboard.teams : fallbackTeams;
+  const active = dashboard?.season || seasons.find((season) => season.status === 'active') || null;
+  const teams = dashboard?.teams || [];
 
   return (
     <main className="px-4 py-8 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <PageTitle eyebrow="Sezone" title="Trka do titule" />
-        <div className="mb-6 grid gap-4 md:grid-cols-3">
-          <StatPill label="Aktivna sezona" value={active.name} />
-          <StatPill label="Cilj pobjeda" value={active.winsToWinSeason} />
-          <StatPill label="Status" value={active.status} />
-        </div>
+        {error && <ErrorPanel message={error} />}
+        {active && (
+          <div className="mb-6 grid gap-4 md:grid-cols-3">
+            <StatPill label="Aktivna sezona" value={active.name} />
+            <StatPill label="Cilj pobjeda" value={active.winsToWinSeason} />
+            <StatPill label="Status" value={active.status} />
+          </div>
+        )}
+        {!active && !error && <Panel className="mb-6">Nema sezona iz backend-a.</Panel>}
 
         <section className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
           <Panel>
@@ -39,7 +49,8 @@ export const PublicSeasons = () => {
             <div className="space-y-4">
               {teams.map((team) => {
                 const wins = team.wins || 0;
-                const pct = Math.min(100, (wins / active.winsToWinSeason) * 100);
+                const target = active?.winsToWinSeason || 1;
+                const pct = Math.min(100, (wins / target) * 100);
                 return (
                   <div key={team.id} className="rounded border border-white/10 bg-blue-950/60 p-4">
                     <div className="mb-3 flex items-center justify-between gap-3">
@@ -58,6 +69,7 @@ export const PublicSeasons = () => {
                   </div>
                 );
               })}
+              {!teams.length && <p className="text-slate-400">Nema ekipa iz backend-a.</p>}
             </div>
           </Panel>
 
@@ -78,6 +90,7 @@ export const PublicSeasons = () => {
                   <p className="mt-3 text-sm font-black text-orange-300">Otvori sezonu</p>
                 </Link>
               ))}
+              {!seasons.length && <p className="text-slate-400">Nema arhive sezona iz backend-a.</p>}
             </div>
           </Panel>
         </section>

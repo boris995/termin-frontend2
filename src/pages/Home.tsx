@@ -4,15 +4,14 @@ import { Link } from 'react-router-dom';
 import { api, unwrap } from '../api/client';
 import { assetUrl } from '../api/assets';
 import { GoldPlayerCard } from '../components/GoldPlayerCard';
-import { Panel } from '../components/ui';
-import { fallbackHome } from '../data/fallback';
+import { ErrorPanel, Panel } from '../components/ui';
 import { HomeData } from '../types';
 import { formatDateTime } from '../utils/date';
 import { setSeo } from '../utils/seo';
 
 export const Home = () => {
-  const [data, setData] = useState<HomeData>(fallbackHome);
-  const [usingFallback, setUsingFallback] = useState(true);
+  const [data, setData] = useState<HomeData | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     setSeo('Football Face-Off | Pocetna', 'Duel Liga rezultati, najave utakmica i novosti.');
@@ -20,23 +19,33 @@ export const Home = () => {
       .get('/home')
       .then(unwrap<HomeData>)
       .then((homeData) => {
-        const hasAnyContent = homeData.lastMatch || homeData.nextMatch || homeData.contentBlocks.length > 0;
-        if (hasAnyContent) {
-          setData({
-            ...fallbackHome,
-            ...homeData,
-            season: homeData.season || fallbackHome.season,
-            contentBlocks: homeData.contentBlocks.length ? homeData.contentBlocks : fallbackHome.contentBlocks
-          });
-          setUsingFallback(false);
-        }
+        setData(homeData);
+        setError('');
       })
-      .catch(() => setUsingFallback(true));
+      .catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
 
     loadHome();
-    const refresh = window.setInterval(loadHome, 15000);
-    return () => window.clearInterval(refresh);
   }, []);
+
+  if (error) {
+    return (
+      <main className="px-4 py-8 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <ErrorPanel message={error} />
+        </div>
+      </main>
+    );
+  }
+
+  if (!data) {
+    return (
+      <main className="px-4 py-8 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <Panel>Ucitavanje podataka iz backend-a...</Panel>
+        </div>
+      </main>
+    );
+  }
 
   const last = data.lastMatch;
   const lastMatches = data.lastMatches || (last ? [last] : []);
@@ -186,7 +195,6 @@ export const Home = () => {
                   Detaljna najava
                 </Link>
               </div>
-              {usingFallback && <p className="mt-4 text-sm text-slate-400">Pocetni primjer sadrzaja. CMS podaci ce se prikazati cim backend bude spreman.</p>}
             </div>
 
             <div className="rounded-lg border border-white/10 bg-slate-950/55 p-5">

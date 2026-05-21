@@ -3,13 +3,14 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router-dom';
 import { api, unwrap } from '../api/client';
-import { Button, Input, PageTitle, Panel, Select } from '../components/ui';
+import { Button, ErrorPanel, Input, PageTitle, Panel, Select } from '../components/ui';
 import { Player, Team } from '../types';
 
 export const Players = () => {
   const { id = '1' } = useParams();
   const [players, setPlayers] = useState<Player[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [error, setError] = useState('');
   const { register, handleSubmit, reset } = useForm({
     defaultValues: { firstName: '', lastName: '', nickname: '', position: 'igrac', shirtNumber: 9, teamId: 0 }
   });
@@ -21,10 +22,11 @@ export const Players = () => {
     ]);
     setPlayers(playerData);
     setTeams(teamData);
+    setError('');
   };
 
   useEffect(() => {
-    load().catch(() => undefined);
+    load().catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
   }, [id]);
 
   const onSubmit = async (values: any) => {
@@ -42,6 +44,7 @@ export const Players = () => {
   return (
     <>
       <PageTitle eyebrow="Roster" title="Igrači i statistika" />
+      {error && <ErrorPanel message={error} />}
       <div className="grid gap-5 xl:grid-cols-[1fr_340px]">
         <Panel className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-left text-sm">

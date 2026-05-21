@@ -2,18 +2,18 @@ import { ArrowLeft, ListOrdered, Trophy, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, unwrap } from '../api/client';
-import { Panel, StatPill } from '../components/ui';
-import { fallbackMatches, fallbackPlayers, fallbackSeason, fallbackTeams } from '../data/fallback';
+import { ErrorPanel, Panel, StatPill } from '../components/ui';
 import { Match, Player, Season, Team } from '../types';
 import { formatDateTime } from '../utils/date';
 import { setSeo } from '../utils/seo';
 
 export const PublicSeasonDetail = () => {
   const { id = '1' } = useParams();
-  const [season, setSeason] = useState<Season>(fallbackSeason);
-  const [teams, setTeams] = useState<Team[]>(fallbackTeams);
-  const [players, setPlayers] = useState<Player[]>(fallbackPlayers);
-  const [matches, setMatches] = useState<Match[]>(fallbackMatches);
+  const [season, setSeason] = useState<Season | null>(null);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -27,9 +27,10 @@ export const PublicSeasonDetail = () => {
       setTeams(teamData);
       setPlayers(playerData);
       setMatches(matchData);
+      setError('');
       setSeo(`${seasonData.name} | Football Face-Off`, 'Timovi, igraci i rezultati izabrane sezone.');
     };
-    load().catch(() => undefined);
+    load().catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
   }, [id]);
 
   const topScorer = [...players].sort((a, b) => b.goals - a.goals)[0];
@@ -42,6 +43,10 @@ export const PublicSeasonDetail = () => {
           <ArrowLeft size={17} />
           Nazad na sezone
         </Link>
+        {error && <ErrorPanel message={error} />}
+        {!season && !error && <Panel>Ucitavanje sezone iz backend-a...</Panel>}
+        {season && (
+          <>
         <div className="mb-6">
           <p className="text-xs font-black uppercase tracking-[0.22em] text-orange-300">Sezona #{season.number}</p>
           <h1 className="mt-2 text-4xl font-black text-white md:text-5xl">{season.name}</h1>
@@ -144,6 +149,8 @@ export const PublicSeasonDetail = () => {
           <Trophy size={22} />
           <p className="text-sm font-black uppercase tracking-[0.18em]">Arhiva sezone</p>
         </div>
+          </>
+        )}
       </div>
     </main>
   );

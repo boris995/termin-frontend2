@@ -1,18 +1,25 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api, unwrap } from '../api/client';
-import { PageTitle, Panel } from '../components/ui';
+import { ErrorPanel, PageTitle, Panel } from '../components/ui';
 import { Match } from '../types';
 
 export const Matches = () => {
   const { id = '1' } = useParams();
   const [matches, setMatches] = useState<Match[]>([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    api.get(`/seasons/${id}/matches`).then(unwrap<Match[]>).then(setMatches).catch(() => undefined);
+    api.get(`/seasons/${id}/matches`).then(unwrap<Match[]>).then((items) => {
+      setMatches(items);
+      setError('');
+    }).catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
   }, [id]);
 
-  const load = () => api.get(`/seasons/${id}/matches`).then(unwrap<Match[]>).then(setMatches).catch(() => undefined);
+  const load = () => api.get(`/seasons/${id}/matches`).then(unwrap<Match[]>).then((items) => {
+    setMatches(items);
+    setError('');
+  }).catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
 
   const toggleVoting = async (match: Match) => {
     await api.put(`/matches/${match.id}`, {
@@ -33,6 +40,7 @@ export const Matches = () => {
   return (
     <>
       <PageTitle eyebrow="Match log" title="Odigrani mečevi" />
+      {error && <ErrorPanel message={error} />}
       <div className="space-y-4">
         {matches.map((match) => (
           <Panel key={match.id}>

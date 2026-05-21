@@ -2,21 +2,24 @@ import { ListOrdered } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, unwrap } from '../api/client';
-import { PageTitle, Panel } from '../components/ui';
+import { ErrorPanel, PageTitle, Panel } from '../components/ui';
 import { SeasonSelector } from '../components/SeasonSelector';
-import { fallbackMatches } from '../data/fallback';
 import { Match } from '../types';
 import { formatDateTime } from '../utils/date';
 import { setSeo } from '../utils/seo';
 
 export const PublicResults = () => {
-  const [matches, setMatches] = useState<Match[]>(fallbackMatches);
+  const [matches, setMatches] = useState<Match[]>([]);
   const [teamFilter, setTeamFilter] = useState('all');
   const [seasonId, setSeasonId] = useState(1);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     setSeo('Rezultati | Football Face-Off', 'Svi odigrani mecevi, pobjednici i rezultat po sezonama.');
-    api.get(`/seasons/${seasonId}/matches`).then(unwrap<Match[]>).then((items) => setMatches(items.length ? items : fallbackMatches)).catch(() => undefined);
+    api.get(`/seasons/${seasonId}/matches`).then(unwrap<Match[]>).then((items) => {
+      setMatches(items);
+      setError('');
+    }).catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
   }, [seasonId]);
 
   const teams = Array.from(new Map(matches.flatMap((match) => [match.homeTeam, match.awayTeam]).map((team) => [team.id, team])).values());
@@ -26,6 +29,7 @@ export const PublicResults = () => {
     <main className="px-3 py-5 sm:px-4 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <PageTitle eyebrow="Rezultati" title="Svi odigrani mecevi" />
+        {error && <ErrorPanel message={error} />}
         <Panel className="p-3 sm:p-5">
           <div className="mb-5">
             <div className="grid gap-3 sm:flex sm:flex-wrap">
@@ -71,6 +75,7 @@ export const PublicResults = () => {
                 </p>
               </Link>
             ))}
+            {!filteredMatches.length && !error && <p className="text-slate-400">Nema rezultata iz backend-a.</p>}
           </div>
         </Panel>
       </div>

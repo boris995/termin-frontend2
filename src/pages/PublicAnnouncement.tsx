@@ -1,15 +1,15 @@
 import { CalendarClock, MapPin, Newspaper } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api, unwrap } from '../api/client';
-import { PageTitle, Panel } from '../components/ui';
-import { fallbackContentBlocks, fallbackNextMatch } from '../data/fallback';
+import { ErrorPanel, PageTitle, Panel } from '../components/ui';
 import { CmsBlock, HomeData, NextMatch } from '../types';
 import { formatDateTime } from '../utils/date';
 import { setSeo } from '../utils/seo';
 
 export const PublicAnnouncement = () => {
-  const [nextMatch, setNextMatch] = useState<NextMatch>(fallbackNextMatch);
-  const [articles, setArticles] = useState<CmsBlock[]>(fallbackContentBlocks);
+  const [nextMatch, setNextMatch] = useState<NextMatch | null>(null);
+  const [articles, setArticles] = useState<CmsBlock[]>([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     setSeo('Najava | Football Face-Off', 'Najava sljedece utakmice i novinski tekstovi.');
@@ -18,17 +18,20 @@ export const PublicAnnouncement = () => {
       .then(unwrap<HomeData>)
       .then((data) => {
         if (data.nextMatch) setNextMatch(data.nextMatch);
-        if (data.contentBlocks.length) setArticles(data.contentBlocks);
+        setArticles(data.contentBlocks);
+        setError('');
       })
-      .catch(() => undefined);
+      .catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
   }, []);
 
   return (
     <main className="px-4 py-8 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <PageTitle eyebrow="Najava" title={nextMatch.status === 'live' ? 'Mec je u toku' : 'Sljedeca utakmica i najave kola'} />
+        <PageTitle eyebrow="Najava" title={nextMatch?.status === 'live' ? 'Mec je u toku' : 'Sljedeca utakmica i najave kola'} />
+        {error && <ErrorPanel message={error} />}
+        {!error && !nextMatch && <Panel className="mb-6">Nema najavljene utakmice iz backend-a.</Panel>}
         <section className="mb-6 grid gap-5 lg:grid-cols-[1fr_0.8fr]">
-          <Panel className="p-6">
+          {nextMatch && <Panel className="p-6">
             <div className="mb-5 flex items-center gap-3 text-orange-300">
               <CalendarClock size={22} />
               <h2 className="text-xl font-black text-white">{nextMatch.status === 'live' ? 'Duel u toku' : 'Sljedeci duel'}</h2>
@@ -45,7 +48,7 @@ export const PublicAnnouncement = () => {
             )}
             {nextMatch.status === 'live' && <p className="mt-5 text-orange-200">Utakmica traje dok admin ne zaustavi mec i objavi rezultat.</p>}
             {nextMatch.note && <p className="mt-5 text-slate-300">{nextMatch.note}</p>}
-          </Panel>
+          </Panel>}
 
           <Panel>
             <h2 className="mb-4 text-xl font-black">Sta treba pratiti</h2>
@@ -70,6 +73,7 @@ export const PublicAnnouncement = () => {
                 <p className="mt-3 whitespace-pre-line text-sm leading-6 text-slate-300">{article.body}</p>
               </Panel>
             ))}
+            {!articles.length && <Panel>Nema CMS tekstova iz backend-a.</Panel>}
           </div>
         </section>
       </div>

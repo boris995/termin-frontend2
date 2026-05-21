@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router-dom';
 import { api, unwrap } from '../api/client';
-import { Button, Input, PageTitle, Panel } from '../components/ui';
+import { Button, ErrorPanel, Input, PageTitle, Panel } from '../components/ui';
 import { Player, Team } from '../types';
 
 interface TeamForm {
@@ -30,10 +30,11 @@ export const Teams = () => {
     ]);
     setTeams(teamData);
     setPlayers(playerData);
+    setError('');
   };
 
   useEffect(() => {
-    load().catch(() => undefined);
+    load().catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
   }, [id]);
 
   const onSubmit = async (values: TeamForm) => {
@@ -86,6 +87,7 @@ export const Teams = () => {
   return (
     <>
       <PageTitle eyebrow="Duel liga" title="Upravljanje ekipama" />
+      {error && <ErrorPanel message={error} />}
       <div className="grid gap-5 lg:grid-cols-[1fr_380px]">
         <div className="grid gap-4 md:grid-cols-2">
           {teams.map((team) => {

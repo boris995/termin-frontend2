@@ -2,8 +2,7 @@ import { ArrowLeft, Star, Trophy } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, unwrap } from '../api/client';
-import { Button, Panel } from '../components/ui';
-import { fallbackMatches } from '../data/fallback';
+import { Button, ErrorPanel, Panel } from '../components/ui';
 import { Match } from '../types';
 import { formatDateTime } from '../utils/date';
 import { setSeo } from '../utils/seo';
@@ -18,25 +17,29 @@ const getVoterKey = () => {
 
 export const PublicMatchDetail = () => {
   const { id = '1' } = useParams();
-  const fallback = useMemo(() => fallbackMatches.find((match) => match.id === Number(id)) || fallbackMatches[0], [id]);
-  const [match, setMatch] = useState<Match>(fallback);
+  const [match, setMatch] = useState<Match | null>(null);
   const [selectedRatings, setSelectedRatings] = useState<Record<number, number>>({});
   const [ratedPlayers, setRatedPlayers] = useState<number[]>([]);
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
-  const load = () => api.get(`/matches/${id}`).then(unwrap<Match>).then(setMatch).catch(() => setMatch(fallback));
+  const load = () => api.get(`/matches/${id}`).then(unwrap<Match>).then((data) => {
+    setMatch(data);
+    setError('');
+  }).catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
 
   useEffect(() => {
-    setSeo(`Matchday ${fallback.matchNumber} | Football Face-Off`, 'Detalji utakmice, rezultat i statistika igraca.');
+    setSeo('Detalji utakmice | Football Face-Off', 'Detalji utakmice, rezultat i statistika igraca.');
     load();
     const savedRatings = JSON.parse(localStorage.getItem(`match-${id}-ratings`) || '[]') as number[];
     setRatedPlayers(savedRatings);
-  }, [fallback, id]);
+  }, [id]);
 
   const ratePlayer = async (playerId: number) => {
     const rating = selectedRatings[playerId];
     if (!rating) return setMessage('Izaberi ocjenu od 1 do 10.');
     if (!window.confirm(`Da li si siguran da zelis dati ocjenu ${rating}/10 ovom igracu?`)) return;
+    if (!match) return;
     await api.post(`/matches/${match.id}/ratings`, { playerId, rating, voterKey: getVoterKey() });
     const updated = [...ratedPlayers, playerId];
     setRatedPlayers(updated);
@@ -46,13 +49,33 @@ export const PublicMatchDetail = () => {
   };
 
   const mvpEntry = useMemo(() => {
-    const entries = Object.entries(match.ratingSummary || {}).map(([playerId, summary]) => ({ playerId: Number(playerId), average: summary.average, count: summary.count }));
+    const entries = Object.entries(match?.ratingSummary || {}).map(([playerId, summary]) => ({ playerId: Number(playerId), average: summary.average, count: summary.count }));
     if (!entries.length) return null;
     const winner = entries.sort((a, b) => b.average - a.average || b.count - a.count)[0];
-    const stat = match.playerStats?.find((item) => item.player.id === winner.playerId);
+    const stat = match?.playerStats?.find((item) => item.player.id === winner.playerId);
     return stat ? { ...stat, average: winner.average, count: winner.count } : null;
-  }, [match.ratingSummary, match.playerStats]);
-  const votingEnabled = match.votingEnabled ?? true;
+  }, [match?.ratingSummary, match?.playerStats]);
+  const votingEnabled = match?.votingEnabled ?? true;
+
+  if (error) {
+    return (
+      <main className="px-3 py-5 sm:px-4 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <ErrorPanel message={error} />
+        </div>
+      </main>
+    );
+  }
+
+  if (!match) {
+    return (
+      <main className="px-3 py-5 sm:px-4 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <Panel>Ucitavanje utakmice iz backend-a...</Panel>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="px-3 py-5 sm:px-4 lg:px-8">

@@ -1,11 +1,10 @@
 import { ArrowLeft, Shield, Trophy } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, unwrap } from '../api/client';
 import { assetUrl } from '../api/assets';
 import { GoldPlayerCard } from '../components/GoldPlayerCard';
-import { Panel } from '../components/ui';
-import { fallbackPlayers } from '../data/fallback';
+import { ErrorPanel, Panel } from '../components/ui';
 import { Player } from '../types';
 import { setSeo } from '../utils/seo';
 
@@ -20,13 +19,37 @@ const ratingKeys = [
 
 export const PublicPlayerDetail = () => {
   const { id = '1' } = useParams();
-  const fallback = useMemo(() => fallbackPlayers.find((player) => player.id === Number(id)) || fallbackPlayers[0], [id]);
-  const [player, setPlayer] = useState<Player>(fallback);
+  const [player, setPlayer] = useState<Player | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    setSeo(`${fallback.firstName} ${fallback.lastName} | Football Face-Off`, `Profil igraca ${fallback.firstName} ${fallback.lastName}, ocjene i galerija.`);
-    api.get(`/players/${id}`).then(unwrap<Player>).then(setPlayer).catch(() => setPlayer(fallback));
-  }, [fallback, id]);
+    setSeo('Profil igraca | Football Face-Off', 'Profil igraca, ocjene i galerija.');
+    api.get(`/players/${id}`).then(unwrap<Player>).then((data) => {
+      setPlayer(data);
+      setError('');
+      setSeo(`${data.firstName} ${data.lastName} | Football Face-Off`, `Profil igraca ${data.firstName} ${data.lastName}, ocjene i galerija.`);
+    }).catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
+  }, [id]);
+
+  if (error) {
+    return (
+      <main className="px-4 py-8 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <ErrorPanel message={error} />
+        </div>
+      </main>
+    );
+  }
+
+  if (!player) {
+    return (
+      <main className="px-4 py-8 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <Panel>Ucitavanje igraca iz backend-a...</Panel>
+        </div>
+      </main>
+    );
+  }
 
   const gallery = player.galleryImages?.length ? player.galleryImages : ['/player-assets/player-photo.svg?photo=1', '/player-assets/player-photo.svg?photo=2'];
 

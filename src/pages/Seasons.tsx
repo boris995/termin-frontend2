@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { api, unwrap } from '../api/client';
-import { Button, Input, PageTitle, Panel, Select } from '../components/ui';
+import { Button, ErrorPanel, Input, PageTitle, Panel, Select } from '../components/ui';
 import { Season } from '../types';
 
 interface SeasonForm {
@@ -20,10 +20,13 @@ export const Seasons = () => {
   const { register, handleSubmit, reset } = useForm<SeasonForm>({ defaultValues: { number: '', name: '', winsToWinSeason: 8 } });
   const editForm = useForm<Season & { name: string }>({ defaultValues: {} as Season });
 
-  const load = async () => setSeasons(unwrap<Season[]>(await api.get('/seasons')));
+  const load = async () => {
+    setSeasons(unwrap<Season[]>(await api.get('/seasons')));
+    setError('');
+  };
 
   useEffect(() => {
-    load().catch(() => undefined);
+    load().catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
   }, []);
 
   const onSubmit = async (values: SeasonForm) => {
@@ -66,6 +69,7 @@ export const Seasons = () => {
   return (
     <>
       <PageTitle eyebrow="Arhiva" title="Sezone" />
+      {error && <ErrorPanel message={error} />}
       <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
         <div className="grid gap-4 md:grid-cols-2">
           {seasons.map((season) => (
