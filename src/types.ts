@@ -77,6 +77,16 @@ export interface Match {
   playerStats?: Array<{ player: Player; team: Team; goals: number; assists: number }>;
   ratingSummary?: Record<number, { count: number; average: number; total: number }>;
   motmSummary?: Record<number, number>;
+  comments?: MatchComment[];
+}
+
+export interface MatchComment {
+  id: number;
+  matchId: number;
+  authorName?: string | null;
+  body: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CmsBlock {
@@ -132,6 +142,7 @@ export type SiteDesign = 'classic' | 'premium';
 export interface AppSettings {
   cardDesign: CardDesign;
   siteDesign?: SiteDesign;
+  showClassicHomeIntroSection?: boolean;
 }
 
 export interface DonationPage {

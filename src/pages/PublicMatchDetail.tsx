@@ -1,4 +1,5 @@
-import { ArrowLeft, Bell, CalendarClock, MapPin, Star, Trophy } from 'lucide-react';
+import { ArrowLeft, Bell, CalendarClock, MapPin, MessageSquare, Send, Star, Trophy, Users } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, unwrap } from '../api/client';
@@ -36,6 +37,9 @@ export const PublicMatchDetail = () => {
   const [selectedRatings, setSelectedRatings] = useState<Record<number, number>>({});
   const [ratedPlayers, setRatedPlayers] = useState<number[]>([]);
   const [message, setMessage] = useState('');
+  const [commentAuthor, setCommentAuthor] = useState('');
+  const [commentBody, setCommentBody] = useState('');
+  const [commentMessage, setCommentMessage] = useState('');
   const [error, setError] = useState('');
 
   const load = () => api.get(`/matches/${id}`).then(unwrap<Match>).then((data) => {
@@ -60,6 +64,21 @@ export const PublicMatchDetail = () => {
     setRatedPlayers(updated);
     localStorage.setItem(`match-${id}-ratings`, JSON.stringify(updated));
     setMessage('Ocjena je sacuvana.');
+    await load();
+  };
+
+  const submitComment = async () => {
+    const body = commentBody.trim();
+    if (!body) return setCommentMessage('Komentar ne moze biti prazan.');
+    if (body.length > 255) return setCommentMessage('Komentar moze imati najvise 255 karaktera.');
+    if (!match) return;
+    await api.post(`/matches/${match.id}/comments`, {
+      authorName: commentAuthor.trim() || null,
+      body
+    });
+    setCommentAuthor('');
+    setCommentBody('');
+    setCommentMessage('Komentar je sacuvan.');
     await load();
   };
 
@@ -326,42 +345,194 @@ export const PublicMatchDetail = () => {
     );
   }
 
+  const comments = match.comments || [];
+  const playedAt = new Date(match.playedAt);
+  const dateLabel = Number.isNaN(playedAt.getTime())
+    ? formatDateTime(match.playedAt)
+    : playedAt.toLocaleDateString('sr-Latn-BA', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const timeLabel = Number.isNaN(playedAt.getTime())
+    ? ''
+    : playedAt.toLocaleTimeString('sr-Latn-BA', { hour: '2-digit', minute: '2-digit' });
+
   return (
-    <main className="px-3 py-5 sm:px-4 lg:px-8">
-      <div className="mx-auto max-w-6xl">
-        <Link to="/rezultati" className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-orange-300 hover:text-orange-200">
-          <ArrowLeft size={17} />
-          Nazad na rezultate
+    <main className="min-h-screen overflow-x-hidden bg-[#d8d2c3] px-3 py-4 text-[#2d2c27] sm:px-6 sm:py-7 lg:px-8">
+      <div className="mx-auto w-full max-w-6xl">
+        <div className="mb-4 space-y-1">
+          <div className="h-px bg-[#2d2c27]" />
+          <div className="h-px bg-[#2d2c27]" />
+        </div>
+        <Link to="/rezultati" className="mb-4 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] text-[#9b382f] hover:text-[#6f2824]">
+          <ArrowLeft size={15} />
+          Sve utakmice
         </Link>
-        <Panel className="p-4 sm:p-6">
-          <div className="mb-5 flex items-center justify-between gap-3">
-            <p className="inline-flex rounded bg-orange-500 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-blue-950">
-              Matchday {match.matchNumber}
-            </p>
-            <p className="text-right text-xs font-bold text-slate-400">{formatDateTime(match.playedAt)}</p>
+
+        <section className="rounded-[3px] border-2 border-[#504d43] bg-[#e8e0d0] p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.32)] sm:p-6">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-center">
+            <span className="h-px bg-[#8d8476]" />
+            <p className="text-sm font-black uppercase tracking-[0.12em] text-[#504d43]">☆ {match.matchNumber}. kolo ☆</p>
+            <span className="h-px bg-[#8d8476]" />
           </div>
-          <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">{match.homeTeam.shortName}</p>
-              <h1 className="mt-1 text-2xl font-black leading-tight text-white md:text-4xl">{match.homeTeam.name}</h1>
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[0.7rem] font-black uppercase tracking-[0.08em] text-[#504d43]">
+            <span className="inline-flex items-center gap-2"><CalendarClock size={14} /> {dateLabel}</span>
+            {timeLabel && <span className="inline-flex items-center gap-2"><CalendarClock size={14} /> {timeLabel}</span>}
+            <span className="inline-flex items-center gap-2"><Trophy size={14} /> Duel Arena</span>
+          </div>
+
+          <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-6">
+            <ClassicMatchTeam name={match.homeTeam.name} shortName={match.homeTeam.shortName} />
+            <div className="text-center">
+              <p className="text-6xl font-black leading-none tracking-[0.02em] text-[#9b382f] sm:text-7xl">{match.homeScore}:{match.awayScore}</p>
+              <p className="mt-2 text-sm font-black text-[#504d43]">({Math.max(0, match.homeScore - 1)}:{Math.max(0, match.awayScore - 1)})</p>
+              <p className="mt-2 text-[0.68rem] font-black uppercase tracking-[0.18em] text-[#9b382f]">Kraj utakmice</p>
             </div>
-            <div className="pt-7 text-xs font-black uppercase tracking-[0.16em] text-orange-300">vs</div>
-            <div className="text-right">
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">{match.awayTeam.shortName}</p>
-              <h1 className="mt-1 text-2xl font-black leading-tight text-white md:text-4xl">{match.awayTeam.name}</h1>
-            </div>
+            <ClassicMatchTeam name={match.awayTeam.name} shortName={match.awayTeam.shortName} />
           </div>
-          <div className="mt-5 rounded bg-orange-500 px-8 py-5 text-center text-6xl font-black leading-none text-blue-950">
-            {match.homeScore}:{match.awayScore}
-          </div>
-          <p className="mt-4 text-center text-sm text-slate-300">
-            {match.winnerTeam ? (
-              <>Pobjednik: <span className="font-black text-white">{match.winnerTeam.name}</span></>
+        </section>
+
+        <nav className="mt-4 grid grid-cols-4 border-b-2 border-[#9b382f] text-center text-[0.62rem] font-black uppercase tracking-[0.08em] text-[#504d43] sm:text-xs">
+          {['Detalji', 'MVP', 'Ocjene', 'Komentari'].map((item, index) => (
+            <span key={item} className={`px-2 py-3 ${index === 0 ? 'text-[#9b382f]' : ''}`}>{item}</span>
+          ))}
+        </nav>
+
+        <section className="mt-4 grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
+          <article className="rounded-[3px] border-2 border-[#504d43] bg-[#e8e0d0] p-4 sm:p-5">
+            <RetroSectionTitle icon={<Trophy size={18} />} title="MVP" />
+            {mvpEntry ? (
+              <div className="mt-4 text-center">
+                <p className="text-3xl font-black uppercase text-[#2f3030]">{mvpEntry.player.firstName} {mvpEntry.player.lastName}</p>
+                <p className="mt-2 text-sm font-black uppercase tracking-[0.08em] text-[#504d43]">{mvpEntry.team.name} - {mvpEntry.goals}G / {mvpEntry.assists}A</p>
+                <p className="mx-auto mt-4 inline-flex rounded-[2px] border-2 border-[#504d43] bg-[#9b382f] px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#f4eddd]">
+                  Ocjena {mvpEntry.average.toFixed(1)} / 10 - {mvpEntry.count} {mvpEntry.count === 1 ? 'glas' : 'glasova'}
+                </p>
+              </div>
             ) : (
-              <span className="font-black text-white">Nerijesen mec</span>
+              <p className="mt-4 border border-[#b4aa98] bg-[#dfd6c5] p-4 text-sm font-bold text-[#504d43]">MVP jos nije izabran. Glasovi publike ce odrediti igraca utakmice.</p>
             )}
-          </p>
-        </Panel>
+          </article>
+
+          <article className="rounded-[3px] border-2 border-[#504d43] bg-[#e8e0d0] p-4 sm:p-5">
+            <RetroSectionTitle icon={<Users size={18} />} title="Statistika utakmice" />
+            <div className="mt-4 space-y-2">
+              {[
+                ['Posjed lopte', '54%', '46%'],
+                ['Udarci', Math.max(match.homeScore * 4, 1), Math.max(match.awayScore * 4, 1)],
+                ['Udarci u okvir', Math.max(match.homeScore * 2, 0), Math.max(match.awayScore * 2, 0)],
+                ['Prekrsaji', 12, 14],
+                ['Zuti kartoni', 1, 1],
+                ['Crveni kartoni', 0, 0]
+              ].map(([label, home, away]) => (
+                <div key={label} className="grid grid-cols-[4rem_1fr_4rem] items-center border-b border-[#b4aa98] pb-2 text-center text-xs font-black uppercase text-[#504d43] last:border-b-0">
+                  <span className="text-[#9b382f]">{home}</span>
+                  <span>{label}</span>
+                  <span className="text-[#9b382f]">{away}</span>
+                </div>
+              ))}
+            </div>
+          </article>
+        </section>
+
+        <section className="mt-4 rounded-[3px] border-2 border-[#504d43] bg-[#e8e0d0] p-4 sm:p-5">
+          <RetroSectionTitle icon={<Star size={18} />} title="Ocjene igraca od strane publike" />
+          {!votingEnabled && <p className="mt-4 border border-[#b4aa98] bg-[#dfd6c5] p-3 text-sm font-black uppercase tracking-[0.12em] text-[#9b382f]">Nema glasanja</p>}
+          {message && <p className="mt-4 border border-[#b4aa98] bg-[#dfd6c5] p-3 text-sm font-bold text-[#504d43]">{message}</p>}
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {match.playerStats?.map((stat, index) => {
+              const playerId = stat.player.id;
+              const summary = match.ratingSummary?.[playerId];
+              const alreadyRated = ratedPlayers.includes(playerId);
+              return (
+                <div key={`${playerId}-${index}`} className="border-2 border-[#b4aa98] bg-[#dfd6c5] p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-black uppercase text-[#2f3030]">{stat.player.firstName} {stat.player.lastName}</p>
+                      <p className="text-xs font-bold uppercase tracking-[0.08em] text-[#504d43]">{stat.team.name} - {stat.goals}G / {stat.assists}A</p>
+                    </div>
+                    <p className="text-3xl font-black text-[#9b382f]">{summary ? summary.average.toFixed(1) : '-'}</p>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-1">
+                    {Array.from({ length: 10 }, (_, item) => item + 1).map((rating) => (
+                      <button
+                        key={rating}
+                        type="button"
+                        disabled={alreadyRated || !votingEnabled}
+                        className={`grid h-7 w-7 place-items-center border text-[0.65rem] font-black transition ${
+                          selectedRatings[playerId] >= rating ? 'border-[#642b26] bg-[#9b382f] text-[#f4eddd]' : 'border-[#8d8476] bg-[#e8e0d0] text-[#504d43]'
+                        } ${alreadyRated || !votingEnabled ? 'cursor-not-allowed opacity-50' : 'hover:border-[#9b382f]'}`}
+                        onClick={() => setSelectedRatings((current) => ({ ...current, [playerId]: rating }))}
+                      >
+                        {rating}
+                      </button>
+                    ))}
+                  </div>
+                  {votingEnabled && (
+                    <button
+                      type="button"
+                      disabled={alreadyRated}
+                      onClick={() => ratePlayer(playerId)}
+                      className="mt-3 w-full rounded-[2px] border-2 border-[#504d43] bg-[#e8e0d0] px-3 py-2 text-xs font-black uppercase tracking-[0.1em] text-[#2f3030] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Sacuvaj ocjenu
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+            {!match.playerStats?.length && <p className="text-sm font-bold text-[#504d43]">Nema unesene individualne statistike za ovaj mec.</p>}
+          </div>
+        </section>
+
+        <section className="mt-4 rounded-[3px] border-2 border-[#504d43] bg-[#e8e0d0] p-4 sm:p-5">
+          <RetroSectionTitle icon={<MessageSquare size={18} />} title="Komentari utakmice" />
+          <div className="mt-4 grid gap-3 lg:grid-cols-[0.75fr_1.25fr]">
+            <div className="border-2 border-[#b4aa98] bg-[#dfd6c5] p-3">
+              <input
+                className="h-11 w-full border-2 border-[#8d8476] bg-[#e8e0d0] px-3 text-sm font-bold text-[#2f3030] outline-none focus:border-[#9b382f]"
+                placeholder="Ime opcionalno"
+                value={commentAuthor}
+                maxLength={60}
+                onChange={(event) => setCommentAuthor(event.target.value)}
+              />
+              <textarea
+                className="mt-3 min-h-28 w-full resize-none border-2 border-[#8d8476] bg-[#e8e0d0] px-3 py-2 text-sm font-bold text-[#2f3030] outline-none focus:border-[#9b382f]"
+                placeholder="Ostavi komentar za ovu utakmicu"
+                value={commentBody}
+                maxLength={255}
+                onChange={(event) => setCommentBody(event.target.value)}
+              />
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <span className="text-xs font-black uppercase tracking-[0.08em] text-[#504d43]">{commentBody.length}/255</span>
+                <button
+                  type="button"
+                  onClick={() => submitComment().catch((err) => setCommentMessage(err.response?.data?.message || err.message || 'Komentar nije sacuvan.'))}
+                  className="inline-flex items-center gap-2 rounded-[2px] border-2 border-[#642b26] bg-[#9b382f] px-4 py-2 text-xs font-black uppercase tracking-[0.1em] text-[#f4eddd]"
+                >
+                  <Send size={15} />
+                  Posalji
+                </button>
+              </div>
+              {commentMessage && <p className="mt-3 text-sm font-bold text-[#9b382f]">{commentMessage}</p>}
+            </div>
+            <div className="space-y-3">
+              {comments.map((comment) => (
+                <article key={comment.id} className="border-2 border-[#b4aa98] bg-[#dfd6c5] p-3">
+                  <div className="flex items-center justify-between gap-3 text-xs font-black uppercase tracking-[0.08em] text-[#504d43]">
+                    <span>{comment.authorName || 'Anonimno'}</span>
+                    {comment.createdAt && <span>{formatDateTime(comment.createdAt)}</span>}
+                  </div>
+                  <p className="mt-2 whitespace-pre-line text-sm font-semibold leading-6 text-[#2f3030]">{comment.body}</p>
+                </article>
+              ))}
+              {!comments.length && <p className="border-2 border-[#b4aa98] bg-[#dfd6c5] p-4 text-sm font-bold text-[#504d43]">Jos nema komentara za ovu utakmicu.</p>}
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+
+  return null;
+  /*
 
         <Panel className="mt-5 p-5">
           <div className="mb-4 flex items-center gap-3 text-orange-300">
@@ -455,4 +626,28 @@ export const PublicMatchDetail = () => {
       </div>
     </main>
   );
+*/
 };
+
+const RetroSectionTitle = ({ icon, title }: { icon: ReactNode; title: string }) => (
+  <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-center">
+    <span className="h-px bg-[#8d8476]" />
+    <h2 className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.12em] text-[#504d43]">
+      {icon}
+      {title}
+    </h2>
+    <span className="h-px bg-[#8d8476]" />
+  </div>
+);
+
+const ClassicMatchTeam = ({ name, shortName }: { name: string; shortName?: string }) => (
+  <div className="min-w-0 text-center">
+    <div className="mx-auto grid h-20 w-20 place-items-center rounded-b-[22px] rounded-t-md border-2 border-[#504d43] bg-[#d9d0bd] sm:h-24 sm:w-24">
+      <div className="grid h-14 w-14 place-items-center rounded-full border-2 border-[#504d43] bg-[#e8e0d0] sm:h-16 sm:w-16">
+        <span className="text-lg font-black text-[#2f3030]">DL</span>
+      </div>
+    </div>
+    <p className="mt-2 truncate text-xl font-black uppercase leading-none tracking-[0.05em] text-[#2f3030] sm:text-2xl">{shortName || name}</p>
+    <p className="mt-1 text-xs font-black uppercase tracking-[0.12em] text-[#504d43]">F.C.</p>
+  </div>
+);

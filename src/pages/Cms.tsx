@@ -51,6 +51,7 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [editingBlock, setEditingBlock] = useState<CmsBlock | null>(null);
+  const [showClassicHomeIntroSection, setShowClassicHomeIntroSection] = useState(false);
   const [error, setError] = useState('');
   const [finishForms, setFinishForms] = useState<Record<number, { homeScore: number; awayScore: number; votingEnabled: boolean; participants: number[]; stats: Record<number, { goals: number; assists: number }> }>>({});
   const blockForm = useForm<BlockForm>({ defaultValues: { title: '', body: '', type: 'news', imageUrl: '', sortOrder: 0 } });
@@ -80,6 +81,7 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
     const availableTeams = asArray(seasonTeams);
     setCardDesign(settings.cardDesign || 'standard');
     setSiteDesign(settings.siteDesign || 'classic');
+    setShowClassicHomeIntroSection(Boolean(settings.showClassicHomeIntroSection));
     donationForm.reset({ ...donationDefaults, ...donationPage });
     setBlocks(asArray(cmsBlocks));
     setNextMatches(asArray(scheduled));
@@ -122,6 +124,11 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
   const saveSiteDesign = async (design: SiteDesign) => {
     const settings = unwrap<AppSettings>(await api.put('/cms/settings', { siteDesign: design }));
     setSiteDesign(settings.siteDesign || 'classic');
+  };
+
+  const saveShowClassicHomeIntroSection = async (isVisible: boolean) => {
+    const settings = unwrap<AppSettings>(await api.put('/cms/settings', { showClassicHomeIntroSection: isVisible }));
+    setShowClassicHomeIntroSection(Boolean(settings.showClassicHomeIntroSection));
   };
 
   const saveDonationPage = async (values: DonationPage) => {
@@ -285,6 +292,26 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
               </button>
               ))}
             </div>
+          </div>
+          <div className="xl:col-span-2">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-300">Classic home</p>
+            <h3 className="mt-1 text-xl font-black text-white">Duel Liga uvodna sekcija</h3>
+            <label className="mt-4 flex items-center justify-between gap-4 rounded border border-white/10 bg-slate-950/45 px-4 py-3 text-sm font-bold text-slate-200">
+              <span>
+                Prikazi staru Duel Liga sekciju na classic pocetnoj
+                <span className="mt-1 block text-xs font-semibold text-slate-500">Default je iskljuceno. Nova najava utakmice ostaje na vrhu.</span>
+              </span>
+              <input
+                type="checkbox"
+                className="h-5 w-5 shrink-0"
+                checked={showClassicHomeIntroSection}
+                onChange={(event) =>
+                  saveShowClassicHomeIntroSection(event.target.checked).catch((err) =>
+                    setError(getApiErrorMessage(err, 'Postavka za classic home sekciju nije sacuvana.'))
+                  )
+                }
+              />
+            </label>
           </div>
         </div>
       </Panel>}

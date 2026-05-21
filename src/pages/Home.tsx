@@ -1,4 +1,5 @@
-import { CalendarClock, ChevronRight, Newspaper, Radio, Shield, Star, Trophy, Users } from 'lucide-react';
+import { CalendarClock, ChevronRight, Clock, MapPin, Newspaper, Radio, Shield, Star, Trophy, Users } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, asArray, unwrap } from '../api/client';
@@ -7,13 +8,14 @@ import { useCardDesign } from '../components/CardDesignProvider';
 import { GoldPlayerCard } from '../components/GoldPlayerCard';
 import { RetroPlayerTile } from '../components/RetroPlayerTile';
 import { ErrorPanel, Panel } from '../components/ui';
-import { HomeData } from '../types';
+import { HomeData, NextMatch, Team } from '../types';
 import { formatDateTime } from '../utils/date';
 import { setSeo } from '../utils/seo';
 
 export const Home = () => {
   const { siteDesign } = useCardDesign();
   const [data, setData] = useState<HomeData | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -28,6 +30,11 @@ export const Home = () => {
       .catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
 
     loadHome();
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
   }, []);
 
   if (error) {
@@ -67,6 +74,12 @@ export const Home = () => {
   const nextTime = next
     ? new Date(next.startedAt || next.scheduledAt).toLocaleTimeString('bs-BA', { hour: '2-digit', minute: '2-digit' })
     : '--:--';
+  const teamLabel = (team?: { name?: string | null }) => (team?.name || 'Tim').toUpperCase();
+  const homeVersusLabel = next
+    ? `${teamLabel(next.homeTeam)} VS ${teamLabel(next.awayTeam)}`
+    : `${teamLabel(leftTeam)} VS ${teamLabel(rightTeam)}`;
+  const homeCountdown = getHomeCountdown(next?.scheduledAt, now);
+  const showClassicHomeIntroSection = Boolean(data.settings?.showClassicHomeIntroSection);
 
   if (effectiveSiteDesign === 'premium') {
     const teamInitial = (teamName?: string) => (teamName || '?').trim().charAt(0).toUpperCase();
@@ -346,7 +359,9 @@ export const Home = () => {
   return (
     <main className="min-h-screen bg-[#d8d2c3] px-3 py-5 text-[#2d2c27] lg:px-8">
       <div className="mx-auto max-w-6xl">
-        <section className="mb-6 border-2 border-[#504d43] bg-[#ebe4d4] p-4 shadow-[0_18px_45px_rgba(0,0,0,0.18)] [background-image:radial-gradient(rgba(45,44,39,0.12)_1px,transparent_1px)] [background-size:7px_7px] md:p-6">
+        {next && <HomeClassicAnnouncement next={next} countdown={homeCountdown} />}
+
+        {showClassicHomeIntroSection && <section className="mb-6 border-2 border-[#504d43] bg-[#ebe4d4] p-4 shadow-[0_18px_45px_rgba(0,0,0,0.18)] [background-image:radial-gradient(rgba(45,44,39,0.12)_1px,transparent_1px)] [background-size:7px_7px] md:p-6">
           <div className="flex items-start justify-between gap-4 border-b-4 border-double border-[#504d43] pb-4">
             <div className="flex items-center gap-3">
               <div className="grid h-14 w-14 place-items-center border-2 border-[#504d43] bg-[#d8d2c3] text-2xl">⚽</div>
@@ -395,23 +410,18 @@ export const Home = () => {
           </div>
 
           <div className="mt-3 border-2 border-[#504d43] bg-[#e7dfce]/85 p-4">
-          <div className="grid items-center gap-5 md:grid-cols-[1fr_auto_1fr]">
-            {[leftTeam, rightTeam].map((team, index) => (
-              <div key={team?.id || index} className="text-center">
-                <p className="mb-3 text-3xl font-black uppercase tracking-wide">{team?.shortName || team?.name || 'Tim'}</p>
-                <div className="mx-auto grid aspect-[4/3] w-full max-w-[14rem] place-items-center border-2 border-[#504d43] bg-[#d8d2c3] text-5xl font-black">
-                  {team?.logoUrl ? (
-                    <img className="h-full w-full object-cover grayscale" src={assetUrl(team.logoUrl)} alt={team.name} />
-                  ) : (
-                    team?.shortName || '?'
-                  )}
-                </div>
-              </div>
-            ))}
-            <div className="grid h-20 w-20 place-items-center rounded-full border-2 border-[#504d43] bg-[#ebe4d4] text-3xl font-black text-[#8f332d] md:h-24 md:w-24">VS</div>
+            <div className="mb-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-center">
+              <span className="h-px bg-[#8d8476]" />
+              <p className="max-w-full text-lg font-black uppercase tracking-[0.08em] text-[#8f332d] sm:text-2xl md:text-3xl">{homeVersusLabel}</p>
+              <span className="h-px bg-[#8d8476]" />
+            </div>
+            <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-5">
+              <HomeClassicTeamBadge team={leftTeam} />
+              <div className="grid h-14 w-14 place-items-center rounded-full border-2 border-[#504d43] bg-[#ebe4d4] text-xl font-black text-[#8f332d] sm:h-20 sm:w-20 sm:text-3xl md:h-24 md:w-24">VS</div>
+              <HomeClassicTeamBadge team={rightTeam} />
+            </div>
           </div>
-          </div>
-        </section>
+        </section>}
 
         <section className="mb-6 border border-neutral-300 bg-[#fafafa] p-4 md:p-6">
           <div className="grid gap-4">
@@ -421,7 +431,7 @@ export const Home = () => {
             </div>
             <div className="flex items-center gap-3 py-1 text-[0.68rem] font-black uppercase tracking-[0.16em] text-neutral-500">
               <div className="h-px flex-1 bg-neutral-300" />
-              <span className="whitespace-nowrap">{leftTeam?.shortName || 'Tim'} / {rightTeam?.shortName || 'Tim'}</span>
+              <span className="max-w-[75vw] truncate whitespace-nowrap">{homeVersusLabel}</span>
               <div className="h-px flex-1 bg-neutral-300" />
             </div>
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -459,7 +469,7 @@ export const Home = () => {
               {next ? (
                 <>
                   <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">{next.status === 'live' ? 'Live' : 'Najava'}</p>
-                  <h3 className="mt-2 text-2xl font-black uppercase text-neutral-950">{next.homeTeam.name} vs {next.awayTeam.name}</h3>
+                  <h3 className="mt-2 text-2xl font-black uppercase text-neutral-950">{homeVersusLabel}</h3>
                   <p className="mt-3 text-sm font-bold text-neutral-700">{formatDateTime(next.startedAt || next.scheduledAt)}</p>
                   {next.venue && <p className="mt-2 text-sm text-neutral-600">Lokacija: {next.venue}</p>}
                   {next.note && <p className="mt-3 text-sm leading-6 text-neutral-600">{next.note}</p>}
@@ -771,4 +781,120 @@ export const Home = () => {
     </main>
   );
   */
+};
+
+const HomeClassicTeamBadge = ({ team }: { team?: Team }) => (
+  <div className="min-w-0 text-center">
+    <p className="mb-2 truncate text-base font-black uppercase tracking-wide sm:mb-3 sm:text-2xl md:text-3xl">{team?.name || 'Tim'}</p>
+    <div className="mx-auto grid aspect-[4/3] w-full max-w-[7.5rem] place-items-center border-2 border-[#504d43] bg-[#d8d2c3] text-2xl font-black sm:max-w-[12rem] sm:text-4xl md:max-w-[14rem] md:text-5xl">
+      {team?.logoUrl ? (
+        <img className="h-full w-full object-cover grayscale" src={assetUrl(team.logoUrl)} alt={team.name} />
+      ) : (
+        <span className="max-w-full truncate px-2">{team?.name || '?'}</span>
+      )}
+    </div>
+  </div>
+);
+
+const HomeClassicAnnouncement = ({ next, countdown }: { next: NextMatch; countdown: ReturnType<typeof getHomeCountdown> }) => {
+  const scheduled = new Date(next.scheduledAt);
+  const date = Number.isNaN(scheduled.getTime())
+    ? '--.--.----'
+    : scheduled.toLocaleDateString('sr-Latn-BA', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const time = Number.isNaN(scheduled.getTime())
+    ? '--:--'
+    : scheduled.toLocaleTimeString('sr-Latn-BA', { hour: '2-digit', minute: '2-digit' });
+
+  return (
+    <section className="mb-6">
+      <header className="mb-5 text-center">
+        <div className="flex items-center justify-center gap-4 text-[#9b382f] sm:gap-8">
+          <span className="text-xl">★</span>
+          <h1 className="text-5xl font-black uppercase leading-none tracking-[0.08em] text-[#2f3030] sm:text-6xl lg:text-7xl">Najava</h1>
+          <span className="text-xl">★</span>
+        </div>
+        <div className="mx-auto mt-3 grid max-w-xl grid-cols-[1fr_auto_1fr] items-center gap-3">
+          <span className="h-px bg-[#8d8476]" />
+          <p className="text-sm font-black uppercase tracking-[0.24em] text-[#9b382f]">Utakmice</p>
+          <span className="h-px bg-[#8d8476]" />
+        </div>
+      </header>
+
+      <div className="rounded-[18px] border-2 border-[#504d43] bg-[#e8e0d0] p-3 shadow-[inset_0_0_0_2px_rgba(80,77,67,0.25)] sm:p-5 lg:p-7">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-center">
+          <span className="h-px bg-[#8d8476]" />
+          <p className="text-sm font-black uppercase tracking-[0.12em] text-[#504d43]">
+            ★ Duel Liga - {next.season?.number ? `${next.season.number}. sezona` : 'Sljedece kolo'} ★
+          </p>
+          <span className="h-px bg-[#8d8476]" />
+        </div>
+
+        <div className="mt-6 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-5">
+          <HomeAnnouncementTeam team={next.homeTeam} tone="light" />
+          <div className="text-center">
+            <span className="mx-auto mb-3 block h-px w-12 bg-[#8d8476] sm:w-16" />
+            <p className="text-5xl font-black uppercase leading-none tracking-[0.03em] text-[#9b382f] sm:text-6xl lg:text-7xl">VS</p>
+            <span className="mx-auto mt-3 block h-px w-12 bg-[#8d8476] sm:w-16" />
+          </div>
+          <HomeAnnouncementTeam team={next.awayTeam} tone="dark" />
+        </div>
+
+        <div className="mt-6 grid border-2 border-[#b4aa98] text-center sm:grid-cols-3">
+          <HomeMatchFact icon={<CalendarClock size={22} />} label="Datum" value={date} />
+          <HomeMatchFact icon={<Clock size={22} />} label={next.status === 'live' ? 'Pocelo' : 'Vrijeme'} value={next.status === 'live' ? formatDateTime(next.startedAt || next.scheduledAt) : time} />
+          <HomeMatchFact icon={<MapPin size={22} />} label="Stadion" value={next.venue || 'Duel Arena'} />
+        </div>
+
+        <div className="my-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-center">
+          <span className="h-px bg-[#8d8476]" />
+          <p className="text-sm font-black uppercase tracking-[0.12em] text-[#504d43]">★ Pocetak utakmice za ★</p>
+          <span className="h-px bg-[#8d8476]" />
+        </div>
+        <div className="grid grid-cols-4 border-2 border-[#b4aa98] text-center">
+          <HomeCountdownBox value={countdown.days} label="Dana" />
+          <HomeCountdownBox value={countdown.hours} label="Sati" />
+          <HomeCountdownBox value={countdown.minutes} label="Minuta" />
+          <HomeCountdownBox value={countdown.seconds} label="Sekundi" />
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const HomeAnnouncementTeam = ({ team, tone }: { team: Team; tone: 'light' | 'dark' }) => (
+  <div className="min-w-0 text-center">
+    <div className={`mx-auto grid h-20 w-20 place-items-center rounded-b-[24px] rounded-t-md border-2 border-[#504d43] ${tone === 'dark' ? 'bg-[#393934]' : 'bg-[#d9d0bd]'} sm:h-28 sm:w-28`}>
+      <div className="grid h-14 w-14 place-items-center rounded-full border-2 border-[#504d43] bg-[#e8e0d0] sm:h-20 sm:w-20">
+        <span className="text-lg font-black tracking-tight text-[#2f3030] sm:text-2xl">DL</span>
+      </div>
+    </div>
+    <h2 className="mt-3 truncate text-xl font-black uppercase tracking-[0.06em] text-[#2f3030] sm:text-3xl">{team.name}</h2>
+    <p className="mt-1 truncate text-xs font-black uppercase tracking-[0.18em] text-[#9b382f]">{team.name}</p>
+    <p className="mt-2 text-sm text-[#2f3030]">★★★★★</p>
+  </div>
+);
+
+const HomeMatchFact = ({ icon, label, value }: { icon: ReactNode; label: string; value: string }) => (
+  <div className="border-b border-[#b4aa98] p-4 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0">
+    <div className="mx-auto grid h-8 w-8 place-items-center text-[#504d43]">{icon}</div>
+    <p className="mt-2 text-xs font-black uppercase tracking-[0.12em] text-[#504d43]">{label}</p>
+    <p className="mt-1 break-words text-sm font-black uppercase text-[#9b382f] sm:text-base">{value}</p>
+  </div>
+);
+
+const HomeCountdownBox = ({ value, label }: { value: number; label: string }) => (
+  <div className="border-r border-[#b4aa98] p-3 last:border-r-0 sm:p-5">
+    <p className="text-3xl font-black leading-none text-[#9b382f] sm:text-5xl">{String(value).padStart(2, '0')}</p>
+    <p className="mt-2 text-[0.66rem] font-black uppercase tracking-[0.08em] text-[#504d43] sm:text-sm">{label}</p>
+  </div>
+);
+
+const getHomeCountdown = (dateValue?: string, now = Date.now()) => {
+  const target = dateValue ? new Date(dateValue).getTime() : Date.now();
+  const diff = Math.max(target - now, 0);
+  const days = Math.floor(diff / 86_400_000);
+  const hours = Math.floor((diff % 86_400_000) / 3_600_000);
+  const minutes = Math.floor((diff % 3_600_000) / 60_000);
+  const seconds = Math.floor((diff % 60_000) / 1_000);
+  return { days, hours, minutes, seconds };
 };

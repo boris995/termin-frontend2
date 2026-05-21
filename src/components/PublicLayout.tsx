@@ -5,10 +5,10 @@ import { useCardDesign } from './CardDesignProvider';
 
 const links = [
   { to: '/', label: 'Pocetna', icon: Home },
-  { to: '/sezone', label: 'Sezone', icon: Trophy },
-  { to: '/rezultati', label: 'Rezultati', icon: ListOrdered },
-  { to: '/igraci', label: 'Igraci', icon: Users },
   { to: '/najava', label: 'Najava', icon: CalendarClock },
+  { to: '/igraci', label: 'Igraci', icon: Users },
+  { to: '/rezultati', label: 'Rezultati', icon: ListOrdered },
+  { to: '/sezone', label: 'Sezone', icon: Trophy },
   { to: '/donacije', label: 'Donacije', icon: HeartHandshake }
 ];
 
