@@ -12,37 +12,38 @@ const links = [
 ];
 
 export const PublicLayout = () => {
-  const { siteDesign } = useCardDesign();
+  const { siteDesign, setSiteDesign } = useCardDesign();
   const [menuOpen, setMenuOpen] = useState(false);
   const isPremium = siteDesign === 'premium';
   const token = localStorage.getItem('token');
   const adminTarget = token ? '/dashboard' : '/login';
   const adminLabel = token ? 'Dashboard' : 'Admin login';
   const AdminIcon = token ? BarChart3 : LogIn;
+  const toggleTheme = () => setSiteDesign(isPremium ? 'classic' : 'premium');
 
   return (
     <div className="min-h-screen pb-20 lg:pb-0">
-      <header className={`sticky top-0 z-30 border-b backdrop-blur-xl ${
-        isPremium ? 'border-emerald-400/15 bg-[#05070b] backdrop-blur-none' : 'border-white/10 bg-blue-950/85'
+      <header className={`sticky top-0 z-30 border-b ${
+        isPremium ? 'border-emerald-400/15 bg-[#05070b]' : 'border-[#504d43] bg-[#ebe4d4]'
       }`}
       >
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 lg:px-8">
         <NavLink to="/" className="flex items-center gap-3">
           <div className={`grid h-10 w-10 place-items-center rounded ${
-            isPremium ? 'bg-emerald-400 text-slate-950 shadow-[0_0_24px_rgba(52,211,153,0.25)]' : 'bg-orange-500 text-blue-950'
+            isPremium ? 'bg-emerald-400 text-slate-950 shadow-[0_0_24px_rgba(52,211,153,0.25)]' : 'border-2 border-[#504d43] bg-[#d8d2c3] text-[#2d2c27]'
           }`}
           >
             <Newspaper size={21} />
           </div>
           <div>
-            <p className={`text-xs font-black uppercase tracking-[0.22em] ${isPremium ? 'text-emerald-400' : 'text-orange-300'}`}>Duel Liga</p>
-            <h1 className="text-lg font-black text-white">Duel Liga</h1>
+            <p className={`text-xs font-black uppercase tracking-[0.22em] ${isPremium ? 'text-emerald-400' : 'text-[#8f332d]'}`}>Duel Liga</p>
+            <h1 className={`text-lg font-black ${isPremium ? 'text-white' : 'text-[#2d2c27]'}`}>Duel Liga</h1>
           </div>
         </NavLink>
         <button
           type="button"
           className={`grid h-10 w-10 place-items-center rounded border lg:hidden ${
-            isPremium ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300' : 'border-white/10 bg-white/10 text-white'
+            isPremium ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300' : 'border-[#504d43] bg-[#e7dfce] text-[#2d2c27]'
           }`}
           onClick={() => setMenuOpen((current) => !current)}
           aria-label={menuOpen ? 'Zatvori meni' : 'Otvori meni'}
@@ -61,10 +62,10 @@ export const PublicLayout = () => {
                     isActive
                       ? isPremium
                         ? 'bg-emerald-400 text-slate-950'
-                        : 'bg-orange-500 text-blue-950'
+                        : 'bg-[#504d43] text-[#ebe4d4]'
                       : isPremium
                         ? 'text-slate-400 hover:bg-emerald-400/10 hover:text-emerald-300'
-                        : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                        : 'text-[#504d43] hover:bg-[#d8d2c3] hover:text-[#2d2c27]'
                   }`
                 }
               >
@@ -73,10 +74,19 @@ export const PublicLayout = () => {
               </NavLink>
             ))}
           </nav>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className={`inline-flex shrink-0 items-center justify-center rounded px-4 py-2 text-sm font-black transition ${
+              isPremium ? 'border border-emerald-400/30 bg-emerald-400/10 text-emerald-300 hover:bg-emerald-400/20' : 'border-2 border-[#504d43] bg-[#e7dfce] text-[#2d2c27] hover:bg-[#504d43] hover:text-[#ebe4d4]'
+            }`}
+          >
+            {isPremium ? 'Premium' : 'Classic'}
+          </button>
           <NavLink
             to={adminTarget}
             className={`inline-flex shrink-0 items-center justify-center gap-2 rounded px-4 py-2 text-sm font-black transition ${
-              isPremium ? 'bg-emerald-400 text-slate-950 hover:bg-emerald-300' : 'bg-orange-500 text-blue-950 hover:bg-orange-400'
+              isPremium ? 'bg-emerald-400 text-slate-950 hover:bg-emerald-300' : 'border-2 border-[#504d43] bg-[#e7dfce] text-[#2d2c27] hover:bg-[#504d43] hover:text-[#ebe4d4]'
             }`}
           >
             <AdminIcon size={17} />
@@ -86,10 +96,23 @@ export const PublicLayout = () => {
       </div>
       {menuOpen && (
         <div className={`border-t px-4 py-3 lg:hidden ${
-          isPremium ? 'border-emerald-400/15 bg-[#05070b]' : 'border-white/10 bg-blue-950'
+          isPremium ? 'border-emerald-400/15 bg-[#05070b]' : 'border-[#504d43] bg-[#ebe4d4]'
         }`}
         >
           <nav className="grid gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                toggleTheme();
+                setMenuOpen(false);
+              }}
+              className={`inline-flex items-center gap-3 rounded px-3 py-3 text-sm font-black transition ${
+                isPremium ? 'bg-emerald-400/10 text-emerald-300' : 'border border-[#504d43] bg-[#e7dfce] text-[#2d2c27]'
+              }`}
+            >
+              <Newspaper size={18} />
+              Tema: {isPremium ? 'Premium' : 'Classic'}
+            </button>
             {[...links, { to: adminTarget, label: adminLabel, icon: AdminIcon }].map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}
@@ -101,10 +124,10 @@ export const PublicLayout = () => {
                     isActive
                       ? isPremium
                         ? 'bg-emerald-400 text-slate-950'
-                        : 'bg-orange-500 text-blue-950'
+                        : 'bg-[#504d43] text-[#ebe4d4]'
                       : isPremium
                         ? 'bg-white/[0.03] text-slate-300 hover:bg-emerald-400/10 hover:text-emerald-300'
-                        : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
+                        : 'border border-[#504d43] bg-[#e7dfce] text-[#2d2c27] hover:bg-[#d8d2c3]'
                   }`
                 }
               >
@@ -118,7 +141,7 @@ export const PublicLayout = () => {
       </header>
       <Outlet />
       <nav className={`fixed bottom-0 left-0 right-0 z-40 border-t lg:hidden ${
-        isPremium ? 'border-emerald-400/15 bg-[#05070b]' : 'border-white/10 bg-blue-950'
+        isPremium ? 'border-emerald-400/15 bg-[#05070b]' : 'border-[#504d43] bg-[#ebe4d4]'
       }`}
       >
         <div className="grid grid-cols-5 px-1 py-2">
@@ -133,8 +156,8 @@ export const PublicLayout = () => {
                   isActive
                     ? isPremium
                       ? 'text-emerald-400'
-                      : 'text-orange-300'
-                    : 'text-slate-500'
+                      : 'text-[#8f332d]'
+                    : isPremium ? 'text-slate-500' : 'text-[#504d43]'
                 }`
               }
             >

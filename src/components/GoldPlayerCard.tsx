@@ -30,10 +30,107 @@ export const GoldPlayerCard = ({
   large?: boolean;
   className?: string;
 }) => {
-  const { cardDesign } = useCardDesign();
-  const isGold = cardDesign === 'gold';
+  const { cardDesign, siteDesign } = useCardDesign();
+  const isClassicTheme = siteDesign === 'classic';
+  const isGold = !isClassicTheme && cardDesign === 'gold';
   const teamColor = player.team?.primaryColor || '#f97316';
   const imageTransform = `translate(${player.cardImageX ?? 0}%, ${player.cardImageY ?? 0}%) scale(${player.cardImageScale ?? 1})`;
+
+  if (isClassicTheme) {
+    return (
+      <div
+        className={`relative mx-auto aspect-[3/4] w-full min-w-0 overflow-hidden rounded-[1.35rem] border-2 border-[#504d43] bg-[#ebe4d4] p-[5%] text-[#2d2c27] shadow-[0_10px_26px_rgba(0,0,0,0.16)] ${large ? 'max-w-[420px]' : 'max-w-none md:max-w-[320px]'} ${className}`}
+      >
+        <div
+          className="absolute inset-0 opacity-60"
+          style={{
+            backgroundImage:
+              'radial-gradient(rgba(45,44,39,0.13) 1px, transparent 1px), linear-gradient(135deg, transparent 22%, rgba(80,77,67,0.10) 22.5%, transparent 24%)',
+            backgroundSize: '7px 7px, auto'
+          }}
+        />
+        <div className="absolute inset-[3%] rounded-[1rem] border border-[#504d43]/70" />
+        <div className="relative z-10 grid h-full grid-rows-[1fr_auto_auto] gap-[4%]">
+          <div className="grid min-h-0 grid-cols-[1.05fr_0.95fr] gap-[4%]">
+            <div className="relative min-h-0 border-2 border-[#504d43] bg-[#d8d2c3]">
+              <div className="absolute left-[6%] top-[5%] z-20 grid h-[15%] w-[18%] place-items-center rounded-full border border-[#504d43] bg-[#ebe4d4] text-[0.7rem] font-black">
+                ⚽
+              </div>
+              <img
+                className="h-full w-full object-cover object-top drop-shadow-xl"
+                style={{ transform: imageTransform }}
+                src={assetUrl(playerImage(player))}
+                alt={`${player.firstName} ${player.lastName}`}
+              />
+            </div>
+
+            <div className="min-w-0 text-center">
+              <div className="mb-[8%] flex items-center gap-2 text-[#504d43]">
+                <div className="h-px flex-1 bg-[#504d43]" />
+                <span className="text-[0.58rem] font-black uppercase tracking-[0.14em]">★ Duel Liga ★</span>
+                <div className="h-px flex-1 bg-[#504d43]" />
+              </div>
+              <h3 className="truncate font-black uppercase leading-none text-[#2d2c27] text-[1.28rem] sm:text-[1.7rem] lg:text-[2rem]">{player.firstName}</h3>
+              <h3 className="truncate font-black uppercase leading-none text-[#2d2c27] text-[1.28rem] sm:text-[1.7rem] lg:text-[2rem]">{player.lastName}</h3>
+              <div className="my-[8%] border-y border-[#504d43] py-[5%]">
+                <p className="text-[0.7rem] font-black text-[#504d43]">#</p>
+                <p className="text-[2rem] font-black leading-none text-[#8f332d] sm:text-[2.45rem]">{player.shirtNumber}</p>
+              </div>
+              <p className="mx-auto max-w-full bg-[#504d43] px-2 py-1 text-[0.52rem] font-black uppercase tracking-[0.12em] text-[#ebe4d4] sm:text-[0.62rem]">{player.position}</p>
+              <div className="mt-[10%] border-t border-[#504d43] pt-[7%]">
+                <p className="truncate text-[1.15rem] font-black uppercase leading-none sm:text-[1.45rem]">{player.team?.shortName || 'TEAM'}</p>
+                <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.22em] text-[#504d43]">F.C.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 border-y border-[#504d43] text-center">
+            {[
+              ['Ocjena', player.overallRating],
+              ['Golovi', player.goals],
+              ['Asist', player.assists]
+            ].map(([label, value]) => (
+              <div key={label} className="border-r border-[#504d43] px-1 py-2 last:border-r-0">
+                <p className="text-[0.45rem] font-black uppercase tracking-[0.12em] text-[#504d43] sm:text-[0.55rem]">{label}</p>
+                <p className="mt-1 text-[0.9rem] font-black text-[#8f332d] sm:text-[1.1rem]">{value}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 gap-[4%]">
+            <div>
+              <div className="mb-1 flex items-center gap-2 text-[#504d43]">
+                <span className="text-[0.6rem]">★</span>
+                <p className="text-[0.55rem] font-black uppercase tracking-[0.14em] sm:text-[0.62rem]">Statistika</p>
+              </div>
+              <div className="space-y-0.5">
+                {ratingKeys.slice(0, 3).map((key) => (
+                  <div key={key} className="flex items-center justify-between gap-2 text-[0.52rem] font-black uppercase sm:text-[0.62rem]">
+                    <span>{key}</span>
+                    <span className="text-[#8f332d]">{player[key]}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="mb-1 flex items-center gap-2 text-[#504d43]">
+                <span className="text-[0.6rem]">★</span>
+                <p className="text-[0.55rem] font-black uppercase tracking-[0.14em] sm:text-[0.62rem]">Osobine</p>
+              </div>
+              <div className="space-y-0.5">
+                {ratingKeys.slice(3).map((key) => (
+                  <div key={key} className="flex items-center justify-between gap-2 text-[0.52rem] font-black uppercase sm:text-[0.62rem]">
+                    <span>{key}</span>
+                    <span className="text-[#8f332d]">{player[key]}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!isGold) {
     return (

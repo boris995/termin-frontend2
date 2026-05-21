@@ -20,20 +20,33 @@ const CardDesignContext = createContext<CardDesignContextValue>({
 
 export const CardDesignProvider = ({ children }: { children: ReactNode }) => {
   const [cardDesign, setCardDesign] = useState<CardDesign>('standard');
-  const [siteDesign, setSiteDesign] = useState<SiteDesign>('classic');
+  const [siteDesignState, setSiteDesignState] = useState<SiteDesign>(() => {
+    const saved = localStorage.getItem('siteDesign');
+    return saved === 'premium' || saved === 'classic' ? saved : 'classic';
+  });
+
+  const setSiteDesign = (design: SiteDesign) => {
+    localStorage.setItem('siteDesign', design);
+    setSiteDesignState(design);
+  };
 
   const refreshCardDesign = async () => {
     const settings = unwrap<AppSettings>(await api.get('/cms/settings'));
     setCardDesign(settings.cardDesign || 'standard');
-    setSiteDesign(settings.siteDesign || 'classic');
+    if (!localStorage.getItem('siteDesign')) setSiteDesignState(settings.siteDesign || 'classic');
   };
 
   useEffect(() => {
     refreshCardDesign().catch(() => undefined);
   }, []);
 
+  useEffect(() => {
+    document.body.classList.toggle('theme-premium', siteDesignState === 'premium');
+    document.body.classList.toggle('theme-classic', siteDesignState === 'classic');
+  }, [siteDesignState]);
+
   return (
-    <CardDesignContext.Provider value={{ cardDesign, siteDesign, setCardDesign, setSiteDesign, refreshCardDesign }}>
+    <CardDesignContext.Provider value={{ cardDesign, siteDesign: siteDesignState, setCardDesign, setSiteDesign, refreshCardDesign }}>
       {children}
     </CardDesignContext.Provider>
   );

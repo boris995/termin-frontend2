@@ -16,6 +16,50 @@ body {
     linear-gradient(135deg, #172554 0%, #0f172a 52%, #020617 100%);
 }
 
+body.theme-classic {
+  color: #2d2c27;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(80, 77, 67, 0.10), transparent 18rem),
+    radial-gradient(circle at 80% 10%, rgba(143, 51, 45, 0.08), transparent 16rem),
+    #d8d2c3;
+}
+
+body.theme-classic .classic-panel {
+  background-image: radial-gradient(rgba(45, 44, 39, 0.10) 1px, transparent 1px);
+  background-size: 7px 7px;
+}
+
+body.theme-classic .classic-panel .text-white,
+body.theme-classic .classic-panel h1,
+body.theme-classic .classic-panel h2,
+body.theme-classic .classic-panel h3,
+body.theme-classic .classic-panel h4 {
+  color: #2d2c27;
+}
+
+body.theme-classic .classic-panel .text-orange-300,
+body.theme-classic .classic-panel .text-orange-200 {
+  color: #8f332d;
+}
+
+body.theme-classic .classic-panel .text-slate-300,
+body.theme-classic .classic-panel .text-slate-400 {
+  color: #5f5a4f;
+}
+
+body.theme-classic .classic-panel .bg-blue-950\/70,
+body.theme-classic .classic-panel .bg-blue-950\/80,
+body.theme-classic .classic-panel .bg-slate-950\/45,
+body.theme-classic .classic-panel .bg-slate-950\/50,
+body.theme-classic .classic-panel .bg-white\/5,
+body.theme-classic .classic-panel .bg-white\/10 {
+  background-color: rgba(244, 237, 221, 0.78);
+}
+
+body.theme-classic .classic-panel .border-white\/10 {
+  border-color: rgba(80, 77, 67, 0.45);
+}
+
 button,
 input,
 select {

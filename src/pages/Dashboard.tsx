@@ -1,8 +1,9 @@
-import { Plus, Swords } from 'lucide-react';
+import { BarChart3, Plus, Swords, Target, Trophy, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { api, unwrap } from '../api/client';
+import { useCardDesign } from '../components/CardDesignProvider';
 import { Button, Input, PageTitle, Panel, Select, StatPill } from '../components/ui';
 import { DashboardData, Team } from '../types';
 
@@ -31,6 +32,7 @@ const Progress = ({ team, target }: { team: Team; target: number }) => {
 };
 
 export const Dashboard = () => {
+  const { siteDesign } = useCardDesign();
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState('');
   const { register, handleSubmit, reset, watch } = useForm<MatchForm>();
@@ -72,6 +74,150 @@ export const Dashboard = () => {
   }
 
   const [left, right] = teams;
+  const isPremium = siteDesign === 'premium';
+
+  if (isPremium) {
+    const topScorer = data.topScorers[0];
+    const topAssist = data.topAssists[0];
+    const leader = [...teams].sort((a, b) => Number(b.wins || 0) - Number(a.wins || 0))[0];
+
+    return (
+      <div className="-mx-4 -my-5 min-h-screen bg-[#05070b] px-4 py-5 text-white lg:-mx-8 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <section className="relative overflow-hidden rounded-md border border-white/10 bg-[#10131b] p-5 sm:p-7">
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:58px_58px]" />
+            <div className="absolute right-[-8rem] top-[-8rem] h-72 w-72 rounded-full bg-emerald-400/10 blur-3xl" />
+            <div className="relative grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.28em] text-emerald-400">Admin dashboard</p>
+                <h1 className="mt-2 text-4xl font-black uppercase leading-none tracking-tight sm:text-5xl lg:text-7xl">{data.season.name}</h1>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">Sezona #{data.season.number} - kontrolni panel za stanje lige, rezultate i brzi unos meca.</p>
+              </div>
+              <div className="grid grid-cols-3 gap-2 sm:min-w-[30rem]">
+                {[
+                  { icon: BarChart3, label: 'Odigrano', value: data.totalMatchesPlayed },
+                  { icon: Target, label: 'Cilj pobjeda', value: data.season.winsToWinSeason },
+                  { icon: Trophy, label: 'Lider', value: leader?.shortName || '-' }
+                ].map(({ icon: Icon, label, value }) => (
+                  <div key={label} className="rounded-md border border-white/10 bg-[#0b0f17] p-3 text-center">
+                    <Icon className="mx-auto text-emerald-400" size={18} />
+                    <p className="mt-2 text-2xl font-black text-white">{value}</p>
+                    <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-slate-500">{label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <div className="mt-5 grid gap-5 xl:grid-cols-[1fr_380px]">
+            <div className="space-y-5">
+              <section className="rounded-md border border-white/10 bg-[#10131b] p-5">
+                {hasTwoTeams ? (
+                  <div className="mb-6 grid items-center gap-4 md:grid-cols-[1fr_auto_1fr]">
+                    {[left, right].filter(Boolean).map((team) => (
+                      <div key={team.id} className="rounded-md border border-white/10 bg-[#0b0f17] p-5 text-center">
+                        <div className="mx-auto grid h-14 w-14 place-items-center rounded-full border border-emerald-400/25 bg-emerald-400/10 text-lg font-black text-emerald-400">
+                          {team.shortName?.charAt(0) || team.name.charAt(0)}
+                        </div>
+                        <p className="mt-3 text-xs font-black uppercase tracking-[0.18em] text-emerald-400">{team.shortName}</p>
+                        <h3 className="mt-1 text-3xl font-black text-white">{team.wins || 0} pobjeda</h3>
+                        <p className="mt-1 text-sm text-slate-500">{team.name}</p>
+                      </div>
+                    ))}
+                    <div className="hidden h-14 w-14 place-items-center rounded-full border border-emerald-400/35 bg-emerald-400/10 text-emerald-400 md:grid">
+                      <Swords size={26} />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mb-6 rounded-md border border-emerald-400/25 bg-emerald-400/10 p-5">
+                    <h3 className="text-xl font-black text-white">Sezona jos nema dvije ekipe.</h3>
+                    <p className="mt-2 text-sm text-slate-300">Dodaj dvije ekipe da dashboard moze prikazati duel i omoguciti unos meca.</p>
+                    <Link className="mt-4 inline-flex rounded bg-emerald-400 px-4 py-2 text-sm font-black text-slate-950 hover:bg-emerald-300" to={`/seasons/${data.season.id}/teams`}>
+                      Dodaj ekipe
+                    </Link>
+                  </div>
+                )}
+
+                <div className="space-y-5">
+                  {teams.map((team) => {
+                    const wins = team.wins || 0;
+                    const pct = Math.min(100, (wins / data.season.winsToWinSeason) * 100);
+                    return (
+                      <div key={team.id}>
+                        <div className="mb-2 flex items-center justify-between text-sm font-black">
+                          <span className="text-white">{team.name}</span>
+                          <span className="text-emerald-400">{wins}/{data.season.winsToWinSeason}</span>
+                        </div>
+                        <div className="h-3 overflow-hidden rounded bg-white/10">
+                          <div className="h-full rounded bg-emerald-400" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+
+              <section className="grid gap-5 md:grid-cols-3">
+                {[
+                  { title: 'Odigrano', value: data.totalMatchesPlayed, sub: 'ukupno meceva' },
+                  { title: 'Top strijelac', value: topScorer ? topScorer.lastName : '-', sub: topScorer ? `${topScorer.goals} golova` : 'nema podataka' },
+                  { title: 'Top asistent', value: topAssist ? topAssist.lastName : '-', sub: topAssist ? `${topAssist.assists} asist.` : 'nema podataka' }
+                ].map((item) => (
+                  <div key={item.title} className="rounded-md border border-white/10 bg-[#10131b] p-5">
+                    <p className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-emerald-400">{item.title}</p>
+                    <p className="mt-2 truncate text-3xl font-black text-white">{item.value}</p>
+                    <p className="mt-1 text-sm text-slate-500">{item.sub}</p>
+                  </div>
+                ))}
+              </section>
+            </div>
+
+            <section className="rounded-md border border-white/10 bg-[#10131b] p-5">
+              <div className="mb-4 flex items-center gap-3 text-emerald-400">
+                <Plus size={22} />
+                <h3 className="text-lg font-black text-white">Brzi unos meca</h3>
+              </div>
+              <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
+                <Select {...register('homeTeamId', { valueAsNumber: true })} defaultValue={teams[0]?.id} disabled={!hasTwoTeams}>
+                  {teams.map((team) => (
+                    <option key={team.id} value={team.id}>{team.name}</option>
+                  ))}
+                </Select>
+                <Select {...register('awayTeamId', { valueAsNumber: true })} defaultValue={awayOptions[0]?.id || teams[1]?.id} disabled={!hasTwoTeams}>
+                  {awayOptions.map((team) => (
+                    <option key={team.id} value={team.id}>{team.name}</option>
+                  ))}
+                </Select>
+                <div className="grid grid-cols-2 gap-3">
+                  <Input type="number" min={0} placeholder="Home" {...register('homeScore', { required: true, valueAsNumber: true })} disabled={!hasTwoTeams} />
+                  <Input type="number" min={0} placeholder="Away" {...register('awayScore', { required: true, valueAsNumber: true })} disabled={!hasTwoTeams} />
+                </div>
+                {error && <p className="rounded border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">{error}</p>}
+                <Button type="submit" className="w-full bg-emerald-400 text-slate-950 hover:bg-emerald-300" disabled={!hasTwoTeams}>
+                  <Plus size={18} />
+                  Sacuvaj rezultat
+                </Button>
+              </form>
+              <div className="mt-5 rounded-md border border-white/10 bg-[#0b0f17] p-4">
+                <div className="mb-3 flex items-center gap-2 text-emerald-400">
+                  <Users size={18} />
+                  <p className="text-sm font-black uppercase tracking-[0.14em]">Top lista</p>
+                </div>
+                <div className="space-y-2">
+                  {data.topScorers.slice(0, 4).map((player, index) => (
+                    <Link key={player.id} to={`/admin/players/${player.id}`} className="flex items-center justify-between rounded bg-white/[0.03] px-3 py-2 text-sm hover:bg-white/[0.06]">
+                      <span className="truncate text-slate-200">{index + 1}. {player.firstName} {player.lastName}</span>
+                      <span className="font-black text-emerald-400">{player.goals}G</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

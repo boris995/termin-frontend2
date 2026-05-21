@@ -1,4 +1,4 @@
-import { CalendarClock, ChevronRight, Newspaper, Shield, Star, Trophy, Users } from 'lucide-react';
+import { CalendarClock, ChevronRight, Newspaper, Radio, Shield, Star, Trophy, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, asArray, unwrap } from '../api/client';
@@ -11,7 +11,7 @@ import { formatDateTime } from '../utils/date';
 import { setSeo } from '../utils/seo';
 
 export const Home = () => {
-  const { siteDesign, setSiteDesign } = useCardDesign();
+  const { siteDesign } = useCardDesign();
   const [data, setData] = useState<HomeData | null>(null);
   const [error, setError] = useState('');
 
@@ -22,7 +22,6 @@ export const Home = () => {
       .then(unwrap<HomeData>)
       .then((homeData) => {
         setData(homeData);
-        if (homeData.settings?.siteDesign) setSiteDesign(homeData.settings.siteDesign);
         setError('');
       })
       .catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
@@ -59,7 +58,7 @@ export const Home = () => {
   const rightTeam = teams[1];
   const leftCards = featured.filter((player) => player.teamId === leftTeam?.id).slice(0, 3);
   const rightCards = featured.filter((player) => player.teamId === rightTeam?.id).slice(0, 3);
-  const effectiveSiteDesign = data.settings?.siteDesign || siteDesign;
+  const effectiveSiteDesign = siteDesign;
   const totalGoals = lastMatches.reduce((sum, match) => sum + Number(match.homeScore || 0) + Number(match.awayScore || 0), 0);
   const leaderWins = Math.max(...teams.map((team) => Number(team.wins || 0)), 0);
   const topScorers = [...featured].sort((a, b) => Number(b.goals || 0) - Number(a.goals || 0)).slice(0, 3);
@@ -73,6 +72,60 @@ export const Home = () => {
 
     return (
       <main className="min-h-screen bg-[#05070b] text-white">
+        <section className="relative overflow-hidden border-b border-white/10 bg-[#030605]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_8%,rgba(255,255,255,0.28),transparent_12rem),radial-gradient(circle_at_50%_52%,rgba(34,197,94,0.16),transparent_18rem),linear-gradient(135deg,rgba(22,163,74,0.22),transparent_22%),linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:auto,auto,auto,64px_64px,64px_64px]" />
+          <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/70 to-transparent" />
+          <div className="relative mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:py-8 md:grid-cols-[1fr_25rem] md:items-end lg:grid-cols-[1fr_32rem] lg:px-8 lg:py-12">
+            <div className="min-w-0">
+              <div className="max-w-3xl">
+                <p className="text-sm font-black uppercase tracking-[0.22em] text-emerald-400">Duel Liga</p>
+                <h1 className="mt-2 text-5xl font-black uppercase italic leading-[0.95] tracking-tight text-white drop-shadow-2xl sm:text-7xl lg:text-8xl">
+                  {data.season?.name || 'Sezona'}
+                </h1>
+              </div>
+
+              <div className="mt-6 grid gap-3 sm:grid-cols-3 md:max-w-3xl">
+                {[
+                  { icon: Radio, label: 'Live status', value: next?.status === 'live' ? 'LIVE' : 'Nema live' },
+                  { icon: CalendarClock, label: 'Zadnji mecevi', value: lastMatches.length },
+                  { icon: Users, label: 'Home kartice', value: featured.length }
+                ].map(({ icon: Icon, label, value }) => (
+                  <div key={label} className="flex items-center gap-3 rounded-md border border-white/10 bg-[#090d0c]/85 p-3 shadow-2xl shadow-black/30 sm:block sm:min-h-[8rem] sm:p-4">
+                    <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-emerald-400/20 bg-emerald-400/5 text-emerald-400 sm:h-14 sm:w-14">
+                      <Icon size={22} />
+                    </div>
+                    <div className="min-w-0 sm:mt-3">
+                      <p className="text-[0.64rem] font-black uppercase tracking-[0.16em] text-slate-500">{label}</p>
+                      <p className="mt-1 truncate text-xl font-black text-white sm:text-2xl">{value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-md border border-emerald-400/35 bg-[#090d0c]/90 p-4 shadow-2xl shadow-black/40 sm:p-5">
+              <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-3">
+                <div className="text-center">
+                  <div className="mx-auto grid aspect-[4/3] w-full max-w-[8rem] place-items-center rounded-t-[35%] border border-white/10 bg-white/5 text-4xl font-black text-white sm:max-w-[9rem] md:max-w-[7.5rem] lg:max-w-[10rem]">
+                    {teamInitial(leftTeam?.name)}
+                  </div>
+                  <p className="mt-3 truncate text-xl font-black uppercase text-white sm:text-2xl">{leftTeam?.shortName || leftTeam?.name || 'Bijeli'}</p>
+                </div>
+                <div className="pb-6 text-center">
+                  <p className="text-4xl font-black italic text-white drop-shadow-xl sm:text-5xl lg:text-6xl">VS</p>
+                  <div className="mx-auto mt-3 grid h-9 w-14 place-items-center rounded-full bg-emerald-700 text-base sm:h-11 sm:w-16">⚽</div>
+                </div>
+                <div className="text-center">
+                  <div className="mx-auto grid aspect-[4/3] w-full max-w-[8rem] place-items-center rounded-t-[35%] border border-white/10 bg-black/50 text-4xl font-black text-slate-200 sm:max-w-[9rem] md:max-w-[7.5rem] lg:max-w-[10rem]">
+                    {teamInitial(rightTeam?.name)}
+                  </div>
+                  <p className="mt-3 truncate text-xl font-black uppercase text-white sm:text-2xl">{rightTeam?.shortName || rightTeam?.name || 'Crni'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section className="relative overflow-hidden border-b border-white/10">
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:82px_82px]" />
           <div className="absolute left-1/2 top-0 h-full w-[42rem] -translate-x-1/2 bg-emerald-500/5 blur-3xl" />
@@ -289,6 +342,176 @@ export const Home = () => {
     );
   }
 
+  return (
+    <main className="min-h-screen bg-[#d8d2c3] px-3 py-5 text-[#2d2c27] lg:px-8">
+      <div className="mx-auto max-w-6xl">
+        <section className="mb-6 border-2 border-[#504d43] bg-[#ebe4d4] p-4 shadow-[0_18px_45px_rgba(0,0,0,0.18)] [background-image:radial-gradient(rgba(45,44,39,0.12)_1px,transparent_1px)] [background-size:7px_7px] md:p-6">
+          <div className="flex items-start justify-between gap-4 border-b-4 border-double border-[#504d43] pb-4">
+            <div className="flex items-center gap-3">
+              <div className="grid h-14 w-14 place-items-center border-2 border-[#504d43] bg-[#d8d2c3] text-2xl">⚽</div>
+              <div>
+                <h1 className="text-3xl font-black uppercase leading-none tracking-wide md:text-4xl">Duel Liga</h1>
+                <p className="mt-1 text-[0.65rem] font-black uppercase tracking-[0.28em] text-[#504d43]">Est. 2024 ★★★</p>
+              </div>
+            </div>
+            <Link to={data.season ? `/sezone/${data.season.id}` : '/sezone'} className="shrink-0 border-2 border-[#504d43] bg-[#e2dccd] px-4 py-3 text-xs font-black uppercase tracking-[0.16em] hover:bg-[#504d43] hover:text-[#ebe4d4]">
+              Sezona
+            </Link>
+          </div>
+
+          <div className="py-6 text-center">
+            <div className="mb-3 flex items-center gap-3 text-[#504d43]">
+              <div className="h-px flex-1 bg-[#504d43]" />
+              <span className="text-xl">★</span>
+              <div className="h-px flex-1 bg-[#504d43]" />
+            </div>
+            <h2 className="text-5xl font-black uppercase leading-[0.92] tracking-tight text-[#34332d] md:text-7xl">
+              {data.season?.name || 'Sezona'}
+            </h2>
+            <div className="mt-4 flex items-center gap-3 text-[#504d43]">
+              <div className="h-px flex-1 bg-[#504d43]" />
+              <span className="text-xl">★</span>
+              <div className="h-px flex-1 bg-[#504d43]" />
+            </div>
+          </div>
+
+          <div className="grid gap-2 md:grid-cols-3">
+            {[
+              { icon: Radio, label: 'Live status', value: next?.status === 'live' ? 'Utakmica je LIVE' : 'Nema live utakmice' },
+              { icon: CalendarClock, label: 'Zadnji mecevi', value: lastMatches.length },
+              { icon: Users, label: 'Home kartice', value: featured.length }
+            ].map(({ icon: Icon, label, value }) => (
+              <div key={label} className="border-2 border-[#504d43] bg-[#e7dfce]/85 p-3">
+                <div className="flex items-center gap-3 border-b border-[#7a7466] pb-3">
+                  <div className="grid h-10 w-10 place-items-center rounded-full border-2 border-[#504d43]">
+                    <Icon size={18} />
+                  </div>
+                  <p className="text-xs font-black uppercase tracking-[0.12em]">{label}</p>
+                </div>
+                <p className="mt-4 text-2xl font-black text-[#8f332d]">{value}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-3 border-2 border-[#504d43] bg-[#e7dfce]/85 p-4">
+          <div className="grid items-center gap-5 md:grid-cols-[1fr_auto_1fr]">
+            {[leftTeam, rightTeam].map((team, index) => (
+              <div key={team?.id || index} className="text-center">
+                <p className="mb-3 text-3xl font-black uppercase tracking-wide">{team?.shortName || team?.name || 'Tim'}</p>
+                <div className="mx-auto grid aspect-[4/3] w-full max-w-[14rem] place-items-center border-2 border-[#504d43] bg-[#d8d2c3] text-5xl font-black">
+                  {team?.logoUrl ? (
+                    <img className="h-full w-full object-cover grayscale" src={assetUrl(team.logoUrl)} alt={team.name} />
+                  ) : (
+                    team?.shortName || '?'
+                  )}
+                </div>
+              </div>
+            ))}
+            <div className="grid h-20 w-20 place-items-center rounded-full border-2 border-[#504d43] bg-[#ebe4d4] text-3xl font-black text-[#8f332d] md:h-24 md:w-24">VS</div>
+          </div>
+          </div>
+        </section>
+
+        <section className="mb-6 border border-neutral-300 bg-[#fafafa] p-4 md:p-6">
+          <div className="grid gap-4 lg:grid-cols-[1fr_auto_1fr]">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+              {leftCards.map((player) => <GoldPlayerCard key={player.id} player={player} />)}
+              {!leftCards.length && <p className="col-span-full border border-neutral-300 bg-white p-4 text-sm text-neutral-600">Admin nije izabrao kartice za {leftTeam?.name || 'prvu ekipu'}.</p>}
+            </div>
+            <div className="flex items-center gap-3 py-1 text-[0.68rem] font-black uppercase tracking-[0.16em] text-neutral-500">
+              <div className="h-px flex-1 bg-neutral-300" />
+              <span className="whitespace-nowrap">{leftTeam?.shortName || 'Tim'} / {rightTeam?.shortName || 'Tim'}</span>
+              <div className="h-px flex-1 bg-neutral-300" />
+            </div>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+              {rightCards.map((player) => <GoldPlayerCard key={player.id} player={player} />)}
+              {!rightCards.length && <p className="col-span-full border border-neutral-300 bg-white p-4 text-sm text-neutral-600">Admin nije izabrao kartice za {rightTeam?.name || 'drugu ekipu'}.</p>}
+            </div>
+          </div>
+        </section>
+
+        <section className="mb-6 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+          <div>
+            <div className="mb-3 flex items-center justify-between border-b border-neutral-300 pb-2">
+              <h2 className="text-xl font-black uppercase">Posljednji rezultati</h2>
+              <Link to="/rezultati" className="text-xs font-black uppercase tracking-[0.14em] text-neutral-600 hover:text-neutral-950">Svi</Link>
+            </div>
+            <div className="space-y-2">
+              {lastMatches.length ? lastMatches.map((match) => (
+                <Link key={match.id} to={`/rezultati/${match.id}`} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 border border-neutral-300 bg-white px-3 py-3 hover:border-neutral-900">
+                  <span className="truncate text-sm font-black uppercase text-neutral-700">{match.homeTeam.shortName}</span>
+                  <span className="text-2xl font-black text-neutral-950">{match.homeScore}:{match.awayScore}</span>
+                  <span className="truncate text-right text-sm font-black uppercase text-neutral-700">{match.awayTeam.shortName}</span>
+                </Link>
+              )) : (
+                <p className="border border-neutral-300 bg-white p-4 text-neutral-600">Nema odigranih utakmica.</p>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-3 flex items-center justify-between border-b border-neutral-300 pb-2">
+              <h2 className="text-xl font-black uppercase">Sljedeci duel</h2>
+              <Link to="/najava" className="text-xs font-black uppercase tracking-[0.14em] text-neutral-600 hover:text-neutral-950">Detalji</Link>
+            </div>
+            <div className="border border-neutral-300 bg-white p-4">
+              {next ? (
+                <>
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">{next.status === 'live' ? 'Live' : 'Najava'}</p>
+                  <h3 className="mt-2 text-2xl font-black uppercase text-neutral-950">{next.homeTeam.name} vs {next.awayTeam.name}</h3>
+                  <p className="mt-3 text-sm font-bold text-neutral-700">{formatDateTime(next.startedAt || next.scheduledAt)}</p>
+                  {next.venue && <p className="mt-2 text-sm text-neutral-600">Lokacija: {next.venue}</p>}
+                  {next.note && <p className="mt-3 text-sm leading-6 text-neutral-600">{next.note}</p>}
+                </>
+              ) : (
+                <p className="text-neutral-600">Sljedeca utakmica jos nije najavljena.</p>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <section className="mb-6 grid gap-5 lg:grid-cols-2">
+          <div className="border border-neutral-300 bg-white p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <Trophy size={19} />
+              <h2 className="text-lg font-black uppercase">Prosli mec</h2>
+            </div>
+            {last ? (
+              <>
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                  <p className="truncate font-black uppercase text-neutral-700">{last.homeTeam.shortName}</p>
+                  <p className="border border-neutral-900 px-4 py-2 text-3xl font-black">{last.homeScore}:{last.awayScore}</p>
+                  <p className="truncate text-right font-black uppercase text-neutral-700">{last.awayTeam.shortName}</p>
+                </div>
+                <p className="mt-4 text-sm text-neutral-600">{last.winnerTeam ? `Pobjednik: ${last.winnerTeam.name}` : 'Nerijesen mec'}</p>
+              </>
+            ) : (
+              <p className="text-neutral-600">Jos nema unesene prethodne utakmice.</p>
+            )}
+          </div>
+
+          <div className="border border-neutral-300 bg-white p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <Newspaper size={19} />
+              <h2 className="text-lg font-black uppercase">Novosti</h2>
+            </div>
+            <div className="space-y-3">
+              {asArray(data.contentBlocks).slice(0, 2).map((block) => (
+                <Link key={block.id} to="/najava" className="block border-b border-neutral-200 pb-3 last:border-b-0 last:pb-0">
+                  <p className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-neutral-500">{block.type}</p>
+                  <h3 className="mt-1 text-xl font-black text-neutral-950">{block.title}</h3>
+                  <p className="mt-1 line-clamp-2 text-sm leading-6 text-neutral-600">{block.body}</p>
+                </Link>
+              ))}
+              {!asArray(data.contentBlocks).length && <p className="text-neutral-600">Nema CMS tekstova iz backend-a.</p>}
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+
+  /*
   return (
     <main className="px-4 py-8 lg:px-8">
       <div className="mx-auto max-w-6xl">
@@ -546,4 +769,5 @@ export const Home = () => {
       </div>
     </main>
   );
+  */
 };
