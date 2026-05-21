@@ -2,7 +2,7 @@ import { Pencil, Plus, Save, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
-import { api, unwrap } from '../api/client';
+import { api, asArray, unwrap } from '../api/client';
 import { Button, ErrorPanel, Input, PageTitle, Panel, Select } from '../components/ui';
 import { Season } from '../types';
 
@@ -21,7 +21,7 @@ export const Seasons = () => {
   const editForm = useForm<Season & { name: string }>({ defaultValues: {} as Season });
 
   const load = async () => {
-    setSeasons(unwrap<Season[]>(await api.get('/seasons')));
+    setSeasons(asArray(unwrap<Season[]>(await api.get('/seasons'))));
     setError('');
   };
 

@@ -1,6 +1,6 @@
 import { CalendarClock, MapPin, Newspaper } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { api, unwrap } from '../api/client';
+import { api, asArray, unwrap } from '../api/client';
 import { ErrorPanel, PageTitle, Panel } from '../components/ui';
 import { CmsBlock, HomeData, NextMatch } from '../types';
 import { formatDateTime } from '../utils/date';
@@ -18,7 +18,7 @@ export const PublicAnnouncement = () => {
       .then(unwrap<HomeData>)
       .then((data) => {
         if (data.nextMatch) setNextMatch(data.nextMatch);
-        setArticles(data.contentBlocks);
+        setArticles(asArray(data.contentBlocks));
         setError('');
       })
       .catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));

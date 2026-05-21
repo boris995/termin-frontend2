@@ -2,7 +2,7 @@ import { Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router-dom';
-import { api, unwrap } from '../api/client';
+import { api, asArray, unwrap } from '../api/client';
 import { Button, ErrorPanel, Input, PageTitle, Panel, Select } from '../components/ui';
 import { Player, Team } from '../types';
 
@@ -20,8 +20,8 @@ export const Players = () => {
       api.get(`/seasons/${id}/players`).then(unwrap<Player[]>),
       api.get(`/seasons/${id}/teams`).then(unwrap<Team[]>)
     ]);
-    setPlayers(playerData);
-    setTeams(teamData);
+    setPlayers(asArray(playerData));
+    setTeams(asArray(teamData));
     setError('');
   };
 

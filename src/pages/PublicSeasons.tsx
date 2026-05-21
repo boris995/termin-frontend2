@@ -1,7 +1,7 @@
 import { Flag, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, unwrap } from '../api/client';
+import { api, asArray, unwrap } from '../api/client';
 import { ErrorPanel, PageTitle, Panel, StatPill } from '../components/ui';
 import { DashboardData, Season } from '../types';
 import { setSeo } from '../utils/seo';
@@ -17,14 +17,14 @@ export const PublicSeasons = () => {
       api.get('/seasons').then(unwrap<Season[]>),
       api.get('/dashboard/season/1').then(unwrap<DashboardData>)
     ]).then(([seasonData, dashboardData]) => {
-      setSeasons(seasonData);
+      setSeasons(asArray(seasonData));
       setDashboard(dashboardData);
       setError('');
     }).catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
   }, []);
 
   const active = dashboard?.season || seasons.find((season) => season.status === 'active') || null;
-  const teams = dashboard?.teams || [];
+  const teams = asArray(dashboard?.teams);
 
   return (
     <main className="px-4 py-8 lg:px-8">

@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { api, unwrap } from '../api/client';
+import { api, asArray, unwrap } from '../api/client';
 import { Season } from '../types';
 
 export const SeasonSelector = ({ value, onChange }: { value: number; onChange: (seasonId: number) => void }) => {
   const [seasons, setSeasons] = useState<Season[]>([]);
 
   useEffect(() => {
-    api.get('/seasons').then(unwrap<Season[]>).then(setSeasons).catch((error) => console.error('Sezone nisu ucitane:', error));
+    api.get('/seasons').then(unwrap<Season[]>).then((items) => setSeasons(asArray(items))).catch((error) => console.error('Sezone nisu ucitane:', error));
   }, []);
 
   return (

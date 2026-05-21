@@ -1,7 +1,7 @@
 import { ArrowLeft, ListOrdered, Trophy, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { api, unwrap } from '../api/client';
+import { api, asArray, unwrap } from '../api/client';
 import { ErrorPanel, Panel, StatPill } from '../components/ui';
 import { Match, Player, Season, Team } from '../types';
 import { formatDateTime } from '../utils/date';
@@ -24,9 +24,9 @@ export const PublicSeasonDetail = () => {
         api.get(`/seasons/${id}/matches`).then(unwrap<Match[]>)
       ]);
       setSeason(seasonData);
-      setTeams(teamData);
-      setPlayers(playerData);
-      setMatches(matchData);
+      setTeams(asArray(teamData));
+      setPlayers(asArray(playerData));
+      setMatches(asArray(matchData));
       setError('');
       setSeo(`${seasonData.name} | Football Face-Off`, 'Timovi, igraci i rezultati izabrane sezone.');
     };

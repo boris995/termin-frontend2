@@ -33,3 +33,5 @@ api.interceptors.response.use(
 );
 
 export const unwrap = <T>(response: { data: { data: T } }) => response.data.data;
+
+export const asArray = <T>(value: T[] | null | undefined): T[] => (Array.isArray(value) ? value : []);

@@ -1,7 +1,7 @@
 import { ListOrdered } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, unwrap } from '../api/client';
+import { api, asArray, unwrap } from '../api/client';
 import { ErrorPanel, PageTitle, Panel } from '../components/ui';
 import { SeasonSelector } from '../components/SeasonSelector';
 import { Match } from '../types';
@@ -17,13 +17,13 @@ export const PublicResults = () => {
   useEffect(() => {
     setSeo('Rezultati | Football Face-Off', 'Svi odigrani mecevi, pobjednici i rezultat po sezonama.');
     api.get(`/seasons/${seasonId}/matches`).then(unwrap<Match[]>).then((items) => {
-      setMatches(items);
+      setMatches(asArray(items));
       setError('');
     }).catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
   }, [seasonId]);
 
-  const teams = Array.from(new Map(matches.flatMap((match) => [match.homeTeam, match.awayTeam]).map((team) => [team.id, team])).values());
-  const filteredMatches = matches.filter((match) => teamFilter === 'all' || String(match.homeTeam.id) === teamFilter || String(match.awayTeam.id) === teamFilter);
+  const teams = Array.from(new Map(asArray(matches).flatMap((match) => [match.homeTeam, match.awayTeam]).filter(Boolean).map((team) => [team.id, team])).values());
+  const filteredMatches = asArray(matches).filter((match) => teamFilter === 'all' || String(match.homeTeam.id) === teamFilter || String(match.awayTeam.id) === teamFilter);
 
   return (
     <main className="px-3 py-5 sm:px-4 lg:px-8">

@@ -1,7 +1,7 @@
 import { CalendarClock, ChevronRight, Newspaper, Shield, Trophy, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, unwrap } from '../api/client';
+import { api, asArray, unwrap } from '../api/client';
 import { assetUrl } from '../api/assets';
 import { GoldPlayerCard } from '../components/GoldPlayerCard';
 import { ErrorPanel, Panel } from '../components/ui';
@@ -48,10 +48,10 @@ export const Home = () => {
   }
 
   const last = data.lastMatch;
-  const lastMatches = data.lastMatches || (last ? [last] : []);
+  const lastMatches = data.lastMatches ? asArray(data.lastMatches) : (last ? [last] : []);
   const next = data.nextMatch;
-  const teams = data.teams || [];
-  const featured = data.homeFeaturedPlayers || [];
+  const teams = asArray(data.teams);
+  const featured = asArray(data.homeFeaturedPlayers);
   const leftTeam = teams[0];
   const rightTeam = teams[1];
   const leftCards = featured.filter((player) => player.teamId === leftTeam?.id).slice(0, 4);
@@ -293,7 +293,7 @@ export const Home = () => {
             <h2 className="text-2xl font-black">Novosti i sadrzaj</h2>
           </div>
           <div className="grid gap-5 md:grid-cols-2">
-            {data.contentBlocks.map((block) => (
+            {asArray(data.contentBlocks).map((block) => (
               <Panel key={block.id}>
                 {block.imageUrl && <img className="mb-4 aspect-video w-full rounded object-cover" src={block.imageUrl} alt={block.title} />}
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-orange-300">{block.type}</p>

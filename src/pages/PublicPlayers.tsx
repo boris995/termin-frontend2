@@ -1,7 +1,7 @@
 import { Medal, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, unwrap } from '../api/client';
+import { api, asArray, unwrap } from '../api/client';
 import { GoldPlayerCard } from '../components/GoldPlayerCard';
 import { SeasonSelector } from '../components/SeasonSelector';
 import { ErrorPanel, Panel } from '../components/ui';
@@ -24,23 +24,23 @@ export const PublicPlayers = () => {
   useEffect(() => {
     setSeo('Igraci | Football Face-Off', 'Pregled igraca, FIFA-style kartice, ocjene i statistika.');
     api.get(`/seasons/${seasonId}/players`).then(unwrap<Player[]>).then((items) => {
-      setPlayers(items);
+      setPlayers(asArray(items));
       setError('');
     }).catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
   }, [seasonId]);
 
   const filteredPlayers = useMemo(
     () =>
-      players.filter((player) => {
+      asArray(players).filter((player) => {
         const teamMatch = teamFilter === 'all' || String(player.teamId) === teamFilter;
         const positionMatch = positionFilter === 'all' || player.position === positionFilter;
         return teamMatch && positionMatch;
       }),
     [players, positionFilter, teamFilter]
   );
-  const teams = useMemo(() => Array.from(new Map(players.map((player) => [player.teamId, player.team])).values()).filter(Boolean), [players]);
-  const topScorers = useMemo(() => [...players].sort((a, b) => b.goals - a.goals).slice(0, 5), [players]);
-  const topAssists = useMemo(() => [...players].sort((a, b) => b.assists - a.assists).slice(0, 5), [players]);
+  const teams = useMemo(() => Array.from(new Map(asArray(players).map((player) => [player.teamId, player.team])).values()).filter(Boolean), [players]);
+  const topScorers = useMemo(() => [...asArray(players)].sort((a, b) => b.goals - a.goals).slice(0, 5), [players]);
+  const topAssists = useMemo(() => [...asArray(players)].sort((a, b) => b.assists - a.assists).slice(0, 5), [players]);
 
   return (
     <main className="px-4 py-4 lg:px-8">

@@ -2,7 +2,7 @@ import { Pencil, Plus, Save, Trash2, UserPlus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router-dom';
-import { api, unwrap } from '../api/client';
+import { api, asArray, unwrap } from '../api/client';
 import { Button, ErrorPanel, Input, PageTitle, Panel } from '../components/ui';
 import { Player, Team } from '../types';
 
@@ -28,8 +28,8 @@ export const Teams = () => {
       api.get(`/seasons/${id}/teams`).then(unwrap<Team[]>),
       api.get(`/seasons/${id}/players`).then(unwrap<Player[]>)
     ]);
-    setTeams(teamData);
-    setPlayers(playerData);
+    setTeams(asArray(teamData));
+    setPlayers(asArray(playerData));
     setError('');
   };
 

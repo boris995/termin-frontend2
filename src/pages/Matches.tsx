@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { api, unwrap } from '../api/client';
+import { api, asArray, unwrap } from '../api/client';
 import { ErrorPanel, PageTitle, Panel } from '../components/ui';
 import { Match } from '../types';
 
@@ -11,13 +11,13 @@ export const Matches = () => {
 
   useEffect(() => {
     api.get(`/seasons/${id}/matches`).then(unwrap<Match[]>).then((items) => {
-      setMatches(items);
+      setMatches(asArray(items));
       setError('');
     }).catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
   }, [id]);
 
   const load = () => api.get(`/seasons/${id}/matches`).then(unwrap<Match[]>).then((items) => {
-    setMatches(items);
+    setMatches(asArray(items));
     setError('');
   }).catch((err) => setError(err.response?.data?.message || err.message || 'Backend ili baza nisu dostupni.'));
 
