@@ -5,6 +5,7 @@ import { api, asArray, unwrap } from '../api/client';
 import { assetUrl } from '../api/assets';
 import { useCardDesign } from '../components/CardDesignProvider';
 import { GoldPlayerCard } from '../components/GoldPlayerCard';
+import { RetroPlayerTile } from '../components/RetroPlayerTile';
 import { ErrorPanel, Panel } from '../components/ui';
 import { HomeData } from '../types';
 import { formatDateTime } from '../utils/date';
@@ -413,9 +414,9 @@ export const Home = () => {
         </section>
 
         <section className="mb-6 border border-neutral-300 bg-[#fafafa] p-4 md:p-6">
-          <div className="grid gap-4 lg:grid-cols-[1fr_auto_1fr]">
+          <div className="grid gap-4">
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
-              {leftCards.map((player) => <GoldPlayerCard key={player.id} player={player} />)}
+              {leftCards.map((player) => <RetroPlayerTile key={player.id} player={player} compact />)}
               {!leftCards.length && <p className="col-span-full border border-neutral-300 bg-white p-4 text-sm text-neutral-600">Admin nije izabrao kartice za {leftTeam?.name || 'prvu ekipu'}.</p>}
             </div>
             <div className="flex items-center gap-3 py-1 text-[0.68rem] font-black uppercase tracking-[0.16em] text-neutral-500">
@@ -424,7 +425,7 @@ export const Home = () => {
               <div className="h-px flex-1 bg-neutral-300" />
             </div>
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
-              {rightCards.map((player) => <GoldPlayerCard key={player.id} player={player} />)}
+              {rightCards.map((player) => <RetroPlayerTile key={player.id} player={player} compact />)}
               {!rightCards.length && <p className="col-span-full border border-neutral-300 bg-white p-4 text-sm text-neutral-600">Admin nije izabrao kartice za {rightTeam?.name || 'drugu ekipu'}.</p>}
             </div>
           </div>

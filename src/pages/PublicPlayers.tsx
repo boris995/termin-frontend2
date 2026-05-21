@@ -5,6 +5,7 @@ import { api, asArray, unwrap } from '../api/client';
 import { assetUrl } from '../api/assets';
 import { useCardDesign } from '../components/CardDesignProvider';
 import { GoldPlayerCard } from '../components/GoldPlayerCard';
+import { RetroPlayerTile } from '../components/RetroPlayerTile';
 import { SeasonSelector } from '../components/SeasonSelector';
 import { ErrorPanel, Panel } from '../components/ui';
 import { Player } from '../types';
@@ -60,6 +61,8 @@ export const PublicPlayers = () => {
   const topScorers = useMemo(() => [...asArray(players)].sort((a, b) => b.goals - a.goals).slice(0, 5), [players]);
   const topAssists = useMemo(() => [...asArray(players)].sort((a, b) => b.assists - a.assists).slice(0, 5), [players]);
   const isPremium = siteDesign === 'premium';
+  const activeTeam = teams.find((team) => team && String(team.id) === teamFilter);
+  const activeTeamLabel = activeTeam?.name ? `${activeTeam.name} F.C.` : 'Duel Liga';
 
   if (isPremium) {
     const topPlayer = [...asArray(players)].sort((a, b) => b.overallRating - a.overallRating)[0];
@@ -180,98 +183,79 @@ export const PublicPlayers = () => {
   }
 
   return (
-    <main className="px-4 py-4 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <header className="mb-4 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-orange-300">Igraci</p>
-            <h1 className="mt-1 text-3xl font-black text-white md:text-4xl">Kartice igraca</h1>
+    <main className="min-h-screen bg-[#d8d2c3] px-3 py-3 text-[#2d2c27] sm:px-5 lg:px-8">
+      <div className="mx-auto max-w-6xl border-x-2 border-[#504d43]/70 px-3 pb-6 sm:px-5 lg:px-7">
+        <header className="border-b-4 border-double border-[#504d43] pb-4">
+          <div className="flex items-center justify-between gap-3">
+            <Link to="/" className="flex min-w-0 items-center gap-3">
+              <div className="grid h-11 w-11 shrink-0 place-items-center rounded border-2 border-[#504d43] bg-[#cfc6b5] text-xs font-black">
+                DL
+              </div>
+              <div className="min-w-0">
+                <h1 className="truncate text-2xl font-black uppercase tracking-[0.06em] text-[#2d2c27] sm:text-4xl">Duel Liga</h1>
+                <p className="text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#504d43]">Est. 2024</p>
+              </div>
+            </Link>
+            <div className="w-36 shrink-0 sm:w-44">
+              <SeasonSelector value={seasonId} onChange={setSeasonId} />
+            </div>
           </div>
-          <SeasonSelector value={seasonId} onChange={setSeasonId} />
         </header>
         {error && <ErrorPanel message={error} />}
 
-        <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:gap-6">
+        <section className="py-6 text-center">
+          <div className="flex items-center justify-center gap-3 text-[#8f332d]">
+            <span className="text-2xl">★</span>
+            <h2 className="text-5xl font-black uppercase tracking-[0.08em] text-[#504d43] sm:text-6xl lg:text-7xl">Igraci</h2>
+            <span className="text-2xl">★</span>
+          </div>
+          <div className="mt-3 flex items-center justify-center gap-3">
+            <span className="h-px w-20 bg-[#504d43]" />
+            <p className="text-sm font-black uppercase tracking-[0.22em] text-[#8f332d] sm:text-base">{activeTeamLabel}</p>
+            <span className="h-px w-20 bg-[#504d43]" />
+          </div>
+        </section>
+
+        <section className="mb-4 grid grid-cols-2 gap-3">
+          <label className="flex min-w-0 items-center gap-2 rounded-none border-2 border-[#504d43] bg-[#e7dfce] px-3 py-3">
+            <Search size={17} className="shrink-0 text-[#504d43]" />
+            <input
+              className="min-w-0 flex-1 bg-transparent text-xs font-black uppercase tracking-[0.08em] text-[#2d2c27] outline-none placeholder:text-[#504d43]"
+              placeholder="Filter"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </label>
+          <select
+            className="rounded-none border-2 border-[#504d43] bg-[#e7dfce] px-3 py-3 text-xs font-black uppercase tracking-[0.08em] text-[#2d2c27] outline-none"
+            value={positionFilter}
+            onChange={(event) => setPositionFilter(event.target.value)}
+          >
+            <option value="all">Pozicija</option>
+            <option value="igrac">Igrac</option>
+            <option value="golman">Golman</option>
+            <option value="golman-igrac">Golman-Igrac</option>
+          </select>
+          <select
+            className="col-span-2 rounded-none border-2 border-[#504d43] bg-[#e7dfce] px-3 py-3 text-xs font-black uppercase tracking-[0.08em] text-[#2d2c27] outline-none sm:col-span-1"
+            value={teamFilter}
+            onChange={(event) => setTeamFilter(event.target.value)}
+          >
+            <option value="all">Sve ekipe</option>
+            {teams.map((team) => team && <option key={team.id} value={team.id}>{team.name}</option>)}
+          </select>
+          <div className="hidden items-center justify-end gap-2 border-2 border-[#504d43] bg-[#e7dfce] px-3 py-3 text-xs font-black uppercase tracking-[0.08em] text-[#504d43] sm:flex">
+            <SlidersHorizontal size={16} />
+            {filteredPlayers.length} igraca
+          </div>
+        </section>
+
+        <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-5">
           {filteredPlayers.map((player) => (
-            <PlayerCard key={player.id} player={player} />
+            <RetroPlayerTile key={player.id} player={player} />
           ))}
           {!filteredPlayers.length && !error && <Panel className="col-span-full w-full">Nema igraca iz backend-a.</Panel>}
         </div>
-
-        <Panel className="mb-6">
-          <div className="grid gap-3 md:grid-cols-2">
-            <select className="rounded border border-white/10 bg-blue-950/80 px-3 py-2 text-sm text-white outline-none focus:border-orange-400" value={teamFilter} onChange={(event) => setTeamFilter(event.target.value)}>
-              <option value="all">Sve ekipe</option>
-              {teams.map((team) => team && <option key={team.id} value={team.id}>{team.name}</option>)}
-            </select>
-            <select className="rounded border border-white/10 bg-blue-950/80 px-3 py-2 text-sm text-white outline-none focus:border-orange-400" value={positionFilter} onChange={(event) => setPositionFilter(event.target.value)}>
-              <option value="all">Sve pozicije</option>
-              <option value="igrac">igrac</option>
-              <option value="golman">golman</option>
-              <option value="golman-igrac">golman-igrac</option>
-            </select>
-          </div>
-        </Panel>
-
-        <div className="mb-5 grid gap-5 lg:grid-cols-2">
-          <Panel>
-            <div className="mb-4 flex items-center gap-3 text-orange-300">
-              <Medal size={22} />
-              <h2 className="text-xl font-black text-white">Top strijelci</h2>
-            </div>
-            {topScorers.map((player, index) => (
-              <Link key={player.id} to={`/igraci/${player.id}`} className="flex items-center justify-between border-b border-white/10 py-3 last:border-b-0">
-                <p className="font-bold">{index + 1}. {player.firstName} {player.lastName}{player.nickname ? ` (${player.nickname})` : ''}</p>
-                <p className="font-black text-orange-300">{player.goals} G</p>
-              </Link>
-            ))}
-          </Panel>
-          <Panel>
-            <div className="mb-4 flex items-center gap-3 text-orange-300">
-              <Users size={22} />
-              <h2 className="text-xl font-black text-white">Top asistenti</h2>
-            </div>
-            {topAssists.map((player, index) => (
-              <Link key={player.id} to={`/igraci/${player.id}`} className="flex items-center justify-between border-b border-white/10 py-3 last:border-b-0">
-                <p className="font-bold">{index + 1}. {player.firstName} {player.lastName}{player.nickname ? ` (${player.nickname})` : ''}</p>
-                <p className="font-black text-orange-300">{player.assists} A</p>
-              </Link>
-            ))}
-          </Panel>
-        </div>
-
-        <Panel className="overflow-x-auto">
-          <table className="w-full min-w-[840px] text-left text-sm">
-            <thead className="text-xs uppercase tracking-widest text-slate-400">
-              <tr>
-                <th className="pb-3">#</th>
-                <th className="pb-3">Igrac</th>
-                <th className="pb-3">Ekipa</th>
-                <th className="pb-3">Pozicija</th>
-                <th className="pb-3 text-right">OVR</th>
-                <th className="pb-3 text-right">Golovi</th>
-                <th className="pb-3 text-right">Asistencije</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/10">
-              {filteredPlayers.map((player) => (
-                <tr key={player.id}>
-                  <td className="py-3 font-black text-orange-300">{player.shirtNumber}</td>
-                  <td className="py-3 font-bold">
-                    <Link to={`/igraci/${player.id}`} className="hover:text-orange-300">
-                      {player.firstName} {player.lastName}{player.nickname ? ` (${player.nickname})` : ''}
-                    </Link>
-                  </td>
-                  <td className="py-3 text-slate-300">{player.team?.shortName || '-'}</td>
-                  <td className="py-3 text-slate-300">{player.position}</td>
-                  <td className="py-3 text-right font-black">{player.overallRating}</td>
-                  <td className="py-3 text-right font-black">{player.goals}</td>
-                  <td className="py-3 text-right font-black">{player.assists}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Panel>
       </div>
     </main>
   );

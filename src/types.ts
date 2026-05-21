@@ -39,6 +39,8 @@ export interface Player {
   def: number;
   phy: number;
   overallRating: number;
+  audienceRating?: number | null;
+  audienceRatingCount?: number;
   goals: number;
   assists: number;
   showOnHome?: boolean;

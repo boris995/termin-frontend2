@@ -31,7 +31,7 @@ export const AppLayout = () => {
   };
 
   return (
-  <div className={`min-h-screen ${isPremium ? 'bg-[#05070b] text-white' : 'admin-classic text-[#2d2c27]'}`}>
+  <div className={`min-h-screen overflow-x-hidden ${isPremium ? 'bg-[#05070b] text-white' : 'admin-classic text-[#2d2c27]'}`}>
     <header className={`sticky top-0 z-30 border-b lg:hidden ${
       isPremium ? 'border-emerald-400/15 bg-[#05070b]' : 'border-[#504d43] bg-[#ebe4d4]'
     }`}>
@@ -176,17 +176,17 @@ export const AppLayout = () => {
         <Outlet />
       </div>
     </main>
-    <nav className={`fixed bottom-0 left-0 right-0 z-40 border-t lg:hidden ${
+    <nav className={`fixed bottom-0 left-0 right-0 z-40 w-full max-w-full overflow-hidden border-t lg:hidden ${
       isPremium ? 'border-emerald-400/15 bg-[#05070b]' : 'border-[#504d43] bg-[#ebe4d4]'
     }`}>
-      <div className="grid grid-cols-5 px-1 py-2">
+      <div className="grid w-full min-w-0 grid-cols-5 px-0.5 py-1.5">
         {bottomLinks.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             onClick={() => setMenuOpen(false)}
             className={({ isActive }) =>
-              `flex min-w-0 flex-col items-center justify-center gap-1 rounded px-1 py-1.5 text-[0.62rem] font-black transition ${
+              `flex min-w-0 flex-col items-center justify-center gap-0.5 rounded px-0.5 py-1.5 text-[0.56rem] font-black leading-none transition sm:text-[0.62rem] ${
                 isActive
                   ? isPremium
                     ? 'text-emerald-400'
@@ -197,7 +197,7 @@ export const AppLayout = () => {
               }`
             }
           >
-            <Icon size={19} />
+            <Icon size={17} />
             <span className="max-w-full truncate">{label}</span>
           </NavLink>
         ))}
