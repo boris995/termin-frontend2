@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, asArray, unwrap } from '../api/client';
 import { Season } from '../types';
+import { Select } from './ui';
 
 let seasonsCache: Season[] | null = null;
 let seasonsRequest: Promise<Season[]> | null = null;
@@ -26,8 +27,7 @@ export const SeasonSelector = ({ value, onChange }: { value: number; onChange: (
   }, []);
 
   return (
-    <select
-      className="rounded border border-white/10 bg-blue-950/80 px-3 py-2 text-sm text-white outline-none focus:border-orange-400"
+    <Select
       value={value}
       onChange={(event) => onChange(Number(event.target.value))}
     >
@@ -37,6 +37,6 @@ export const SeasonSelector = ({ value, onChange }: { value: number; onChange: (
           {season.name}
         </option>
       ))}
-    </select>
+    </Select>
   );
 };

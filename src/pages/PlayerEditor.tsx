@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api, unwrap } from '../api/client';
 import { assetUrl } from '../api/assets';
-import { Button, Input, PageTitle, Panel, Select } from '../components/ui';
+import { Button, Field, Input, PageTitle, Panel, Select } from '../components/ui';
 import { GoldPlayerCard } from '../components/GoldPlayerCard';
 import { Player } from '../types';
 
@@ -182,16 +182,18 @@ export const PlayerEditor = () => {
 
         <Panel>
           <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
-            <Input placeholder="Ime" {...register('firstName', { required: true })} />
-            <Input placeholder="Prezime" {...register('lastName', { required: true })} />
-            <Input placeholder="Nadimak" {...register('nickname')} />
-            <Input type="number" min={1} placeholder="Broj dresa" {...register('shirtNumber', { valueAsNumber: true })} />
-            <Select {...register('position')}>
-              <option value="igrac">igrac</option>
-              <option value="golman">golman</option>
-              <option value="golman-igrac">golman-igrac</option>
-            </Select>
-            <Input placeholder="Card image URL" {...register('cardImageUrl')} />
+            <Field label="Ime"><Input placeholder="Ime igraca" {...register('firstName', { required: true })} /></Field>
+            <Field label="Prezime"><Input placeholder="Prezime igraca" {...register('lastName', { required: true })} /></Field>
+            <Field label="Nadimak"><Input placeholder="Opcionalno" {...register('nickname')} /></Field>
+            <Field label="Broj dresa"><Input type="number" min={1} placeholder="9" {...register('shirtNumber', { valueAsNumber: true })} /></Field>
+            <Field label="Pozicija">
+              <Select {...register('position')}>
+                <option value="igrac">igrac</option>
+                <option value="golman">golman</option>
+                <option value="golman-igrac">golman-igrac</option>
+              </Select>
+            </Field>
+            <Field label="Card image URL"><Input placeholder="URL slike" {...register('cardImageUrl')} /></Field>
             {ratingKeys.map((key) => (
               <label key={key} className="block">
                 <span className="mb-1 block text-xs font-black uppercase tracking-widest text-orange-300">{key}</span>

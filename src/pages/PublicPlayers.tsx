@@ -6,7 +6,7 @@ import { assetUrl } from '../api/assets';
 import { useCardDesign } from '../components/CardDesignProvider';
 import { GoldPlayerCard } from '../components/GoldPlayerCard';
 import { SeasonSelector } from '../components/SeasonSelector';
-import { ErrorPanel, Panel } from '../components/ui';
+import { ErrorPanel, Field, Input, Panel, Select } from '../components/ui';
 import { Player } from '../types';
 import { setSeo } from '../utils/seo';
 
@@ -75,27 +75,24 @@ export const PublicPlayers = () => {
           {error && <ErrorPanel message={error} />}
 
           <section className="rounded-md border border-white/10 bg-[#10131b] p-4">
-            <label className="flex items-center gap-3 rounded-md border border-white/10 bg-[#0b0f17] px-3 py-3 text-sm text-slate-400">
-              <Search size={18} className="text-emerald-400" />
-              <input
-                className="w-full bg-transparent text-white outline-none placeholder:text-slate-500"
-                placeholder="Pretrazi igrace..."
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-              />
-            </label>
+            <Field label="Pretraga igraca">
+              <div className="flex items-center gap-3 rounded-md border border-white/10 bg-[#0b0f17] px-3 py-3 text-sm text-slate-400">
+                <Search size={18} className="text-emerald-400" />
+                <Input className="border-0 bg-transparent px-0 py-0 focus:border-transparent" placeholder="Pretrazi igrace..." value={search} onChange={(event) => setSearch(event.target.value)} />
+              </div>
+            </Field>
             <div className="mt-3 grid gap-2 sm:grid-cols-3">
-              <SeasonSelector value={seasonId} onChange={setSeasonId} />
-              <select className="rounded-md border border-white/10 bg-[#0b0f17] px-3 py-2 text-sm text-white outline-none focus:border-emerald-400" value={teamFilter} onChange={(event) => setTeamFilter(event.target.value)}>
-                <option value="all">Svi timovi</option>
-                {teams.map((team) => team && <option key={team.id} value={team.id}>{team.name}</option>)}
-              </select>
-              <select className="rounded-md border border-white/10 bg-[#0b0f17] px-3 py-2 text-sm text-white outline-none focus:border-emerald-400" value={positionFilter} onChange={(event) => setPositionFilter(event.target.value)}>
-                <option value="all">Sve pozicije</option>
-                <option value="igrac">igrac</option>
-                <option value="golman">golman</option>
-                <option value="golman-igrac">golman-igrac</option>
-              </select>
+              <Field label="Sezona"><SeasonSelector value={seasonId} onChange={setSeasonId} /></Field>
+              <Field label="Ekipa"><Select value={teamFilter} onChange={(event) => setTeamFilter(event.target.value)}>
+                  <option value="all">Svi timovi</option>
+                  {teams.map((team) => team && <option key={team.id} value={team.id}>{team.name}</option>)}
+                </Select></Field>
+              <Field label="Pozicija"><Select value={positionFilter} onChange={(event) => setPositionFilter(event.target.value)}>
+                  <option value="all">Sve pozicije</option>
+                  <option value="igrac">igrac</option>
+                  <option value="golman">golman</option>
+                  <option value="golman-igrac">golman-igrac</option>
+                </Select></Field>
             </div>
           </section>
 
@@ -187,7 +184,7 @@ export const PublicPlayers = () => {
             <p className="text-xs font-black uppercase tracking-[0.22em] text-orange-300">Igraci</p>
             <h1 className="mt-1 text-3xl font-black text-white md:text-4xl">Kartice igraca</h1>
           </div>
-          <SeasonSelector value={seasonId} onChange={setSeasonId} />
+          <Field label="Sezona"><SeasonSelector value={seasonId} onChange={setSeasonId} /></Field>
         </header>
         {error && <ErrorPanel message={error} />}
 
@@ -200,16 +197,16 @@ export const PublicPlayers = () => {
 
         <Panel className="mb-6">
           <div className="grid gap-3 md:grid-cols-2">
-            <select className="rounded border border-white/10 bg-blue-950/80 px-3 py-2 text-sm text-white outline-none focus:border-orange-400" value={teamFilter} onChange={(event) => setTeamFilter(event.target.value)}>
+            <Field label="Ekipa"><Select value={teamFilter} onChange={(event) => setTeamFilter(event.target.value)}>
               <option value="all">Sve ekipe</option>
               {teams.map((team) => team && <option key={team.id} value={team.id}>{team.name}</option>)}
-            </select>
-            <select className="rounded border border-white/10 bg-blue-950/80 px-3 py-2 text-sm text-white outline-none focus:border-orange-400" value={positionFilter} onChange={(event) => setPositionFilter(event.target.value)}>
+            </Select></Field>
+            <Field label="Pozicija"><Select value={positionFilter} onChange={(event) => setPositionFilter(event.target.value)}>
               <option value="all">Sve pozicije</option>
               <option value="igrac">igrac</option>
               <option value="golman">golman</option>
               <option value="golman-igrac">golman-igrac</option>
-            </select>
+            </Select></Field>
           </div>
         </Panel>
 

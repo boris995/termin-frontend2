@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { api, unwrap } from '../api/client';
 import { useCardDesign } from '../components/CardDesignProvider';
-import { Button, Input, PageTitle, Panel, Select, StatPill } from '../components/ui';
+import { Button, Field, Input, PageTitle, Panel, Select, StatPill } from '../components/ui';
 import { DashboardData, Team } from '../types';
 
 interface MatchForm {
@@ -178,19 +178,23 @@ export const Dashboard = () => {
                 <h3 className="text-lg font-black text-white">Brzi unos meca</h3>
               </div>
               <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
-                <Select {...register('homeTeamId', { valueAsNumber: true })} defaultValue={teams[0]?.id} disabled={!hasTwoTeams}>
-                  {teams.map((team) => (
-                    <option key={team.id} value={team.id}>{team.name}</option>
-                  ))}
-                </Select>
-                <Select {...register('awayTeamId', { valueAsNumber: true })} defaultValue={awayOptions[0]?.id || teams[1]?.id} disabled={!hasTwoTeams}>
-                  {awayOptions.map((team) => (
-                    <option key={team.id} value={team.id}>{team.name}</option>
-                  ))}
-                </Select>
+                <Field label="Domacin">
+                  <Select {...register('homeTeamId', { valueAsNumber: true })} defaultValue={teams[0]?.id} disabled={!hasTwoTeams}>
+                    {teams.map((team) => (
+                      <option key={team.id} value={team.id}>{team.name}</option>
+                    ))}
+                  </Select>
+                </Field>
+                <Field label="Gost">
+                  <Select {...register('awayTeamId', { valueAsNumber: true })} defaultValue={awayOptions[0]?.id || teams[1]?.id} disabled={!hasTwoTeams}>
+                    {awayOptions.map((team) => (
+                      <option key={team.id} value={team.id}>{team.name}</option>
+                    ))}
+                  </Select>
+                </Field>
                 <div className="grid grid-cols-2 gap-3">
-                  <Input type="number" min={0} placeholder="Home" {...register('homeScore', { required: true, valueAsNumber: true })} disabled={!hasTwoTeams} />
-                  <Input type="number" min={0} placeholder="Away" {...register('awayScore', { required: true, valueAsNumber: true })} disabled={!hasTwoTeams} />
+                  <Field label="Golovi domacin"><Input type="number" min={0} placeholder="0" {...register('homeScore', { required: true, valueAsNumber: true })} disabled={!hasTwoTeams} /></Field>
+                  <Field label="Golovi gost"><Input type="number" min={0} placeholder="0" {...register('awayScore', { required: true, valueAsNumber: true })} disabled={!hasTwoTeams} /></Field>
                 </div>
                 {error && <p className="rounded border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">{error}</p>}
                 <Button type="submit" className="w-full bg-emerald-400 text-slate-950 hover:bg-emerald-300" disabled={!hasTwoTeams}>
@@ -266,19 +270,23 @@ export const Dashboard = () => {
         <Panel>
           <h3 className="mb-4 text-lg font-black">Brzi unos meca</h3>
           <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
-            <Select {...register('homeTeamId', { valueAsNumber: true })} defaultValue={teams[0]?.id} disabled={!hasTwoTeams}>
-              {teams.map((team) => (
-                <option key={team.id} value={team.id}>{team.name}</option>
-              ))}
-            </Select>
-            <Select {...register('awayTeamId', { valueAsNumber: true })} defaultValue={awayOptions[0]?.id || teams[1]?.id} disabled={!hasTwoTeams}>
-              {awayOptions.map((team) => (
-                <option key={team.id} value={team.id}>{team.name}</option>
-              ))}
-            </Select>
+            <Field label="Domacin">
+              <Select {...register('homeTeamId', { valueAsNumber: true })} defaultValue={teams[0]?.id} disabled={!hasTwoTeams}>
+                {teams.map((team) => (
+                  <option key={team.id} value={team.id}>{team.name}</option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Gost">
+              <Select {...register('awayTeamId', { valueAsNumber: true })} defaultValue={awayOptions[0]?.id || teams[1]?.id} disabled={!hasTwoTeams}>
+                {awayOptions.map((team) => (
+                  <option key={team.id} value={team.id}>{team.name}</option>
+                ))}
+              </Select>
+            </Field>
             <div className="grid grid-cols-2 gap-3">
-              <Input type="number" min={0} placeholder="Home" {...register('homeScore', { required: true, valueAsNumber: true })} disabled={!hasTwoTeams} />
-              <Input type="number" min={0} placeholder="Away" {...register('awayScore', { required: true, valueAsNumber: true })} disabled={!hasTwoTeams} />
+              <Field label="Golovi domacin"><Input type="number" min={0} placeholder="0" {...register('homeScore', { required: true, valueAsNumber: true })} disabled={!hasTwoTeams} /></Field>
+              <Field label="Golovi gost"><Input type="number" min={0} placeholder="0" {...register('awayScore', { required: true, valueAsNumber: true })} disabled={!hasTwoTeams} /></Field>
             </div>
             {error && <p className="rounded border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">{error}</p>}
             <Button type="submit" className="w-full" disabled={!hasTwoTeams}>

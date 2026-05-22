@@ -55,6 +55,19 @@ export const Button = ({ children, className = '', ...props }: React.ButtonHTMLA
   );
 };
 
+export const Field = ({ label, children, className = '' }: { label: string; children: ReactNode; className?: string }) => {
+  const { siteDesign } = useCardDesign();
+  const premium = siteDesign === 'premium';
+  return (
+    <label className={`block ${className}`}>
+      <span className={`mb-1.5 block text-[0.68rem] font-black uppercase tracking-[0.14em] ${premium ? 'text-emerald-400' : 'text-[#8f332d]'}`}>
+        {label}
+      </span>
+      {children}
+    </label>
+  );
+};
+
 export const Input = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(({ className = '', ...props }, ref) => {
   const { siteDesign } = useCardDesign();
   const premium = siteDesign === 'premium';
@@ -86,3 +99,21 @@ export const Select = forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<H
 });
 
 Select.displayName = 'Select';
+
+export const Textarea = forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(({ className = '', ...props }, ref) => {
+  const { siteDesign } = useCardDesign();
+  const premium = siteDesign === 'premium';
+  return (
+    <textarea
+      ref={ref}
+      className={`w-full rounded border px-3 py-2 text-sm outline-none transition ${
+        premium
+          ? 'border-white/10 bg-[#0b0f17] text-white placeholder:text-slate-500 focus:border-emerald-400'
+          : 'border-[#504d43] bg-[#f4eddd] text-[#2d2c27] placeholder:text-[#7a7466] focus:border-[#8f332d]'
+      } ${className}`}
+      {...props}
+    />
+  );
+});
+
+Textarea.displayName = 'Textarea';

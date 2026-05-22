@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { api, asArray, getApiErrorMessage, unwrap } from '../api/client';
 import { useCardDesign } from '../components/CardDesignProvider';
-import { Button, ErrorPanel, Input, PageTitle, Panel, Select } from '../components/ui';
-import { AppSettings, CardDesign, CmsBlock, DonationPage, NextMatch, Player, Season, SiteDesign, Team } from '../types';
+import { Button, ErrorPanel, Field, Input, PageTitle, Panel, Select, Textarea } from '../components/ui';
+import { AppSettings, CardDesign, CmsBlock, DonationPage, MatchTimelineEvent, NextMatch, Player, Season, SiteDesign, Team } from '../types';
 import { formatDateTime } from '../utils/date';
 
 interface BlockForm {
@@ -23,6 +23,25 @@ interface NextMatchForm {
   venue?: string;
   note?: string;
 }
+
+type FinishForm = {
+  homeScore: number;
+  awayScore: number;
+  votingEnabled: boolean;
+  participants: number[];
+  stats: Record<number, { goals: number; assists: number }>;
+  reportSummary: string;
+  timelineEvents: MatchTimelineEvent[];
+};
+
+const emptyTimelineEvent = (teamId?: number): MatchTimelineEvent => ({
+  minute: '',
+  type: 'goal',
+  teamId: teamId || null,
+  playerId: null,
+  assistPlayerId: null,
+  description: ''
+});
 
 const donationDefaults: DonationPage = {
   eyebrow: 'Podrzi ligu',
@@ -52,7 +71,7 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [editingBlock, setEditingBlock] = useState<CmsBlock | null>(null);
   const [error, setError] = useState('');
-  const [finishForms, setFinishForms] = useState<Record<number, { homeScore: number; awayScore: number; votingEnabled: boolean; participants: number[]; stats: Record<number, { goals: number; assists: number }> }>>({});
+  const [finishForms, setFinishForms] = useState<Record<number, FinishForm>>({});
   const blockForm = useForm<BlockForm>({ defaultValues: { title: '', body: '', type: 'news', imageUrl: '', sortOrder: 0 } });
   const nextForm = useForm<NextMatchForm>({ defaultValues: { seasonId: 1, homeTeamId: 0, awayTeamId: 0, scheduledAt: '', venue: '', note: '' } });
   const donationForm = useForm<DonationPage>({ defaultValues: donationDefaults });
@@ -184,7 +203,7 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
     await load();
   };
 
-  const updateFinishForm = (matchId: number, patch: Partial<{ homeScore: number; awayScore: number; votingEnabled: boolean; participants: number[]; stats: Record<number, { goals: number; assists: number }> }>) => {
+  const updateFinishForm = (matchId: number, patch: Partial<FinishForm>) => {
     setFinishForms((current) => ({
       ...current,
       [matchId]: {
@@ -193,13 +212,15 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
         votingEnabled: current[matchId]?.votingEnabled ?? true,
         participants: current[matchId]?.participants || [],
         stats: current[matchId]?.stats || {},
+        reportSummary: current[matchId]?.reportSummary || '',
+        timelineEvents: current[matchId]?.timelineEvents || [],
         ...patch
       }
     }));
   };
 
   const toggleParticipant = (match: NextMatch, player: Player) => {
-    const form = finishForms[match.id] || { homeScore: 0, awayScore: 0, votingEnabled: true, participants: [], stats: {} };
+    const form = finishForms[match.id] || { homeScore: 0, awayScore: 0, votingEnabled: true, participants: [], stats: {}, reportSummary: '', timelineEvents: [] };
     const participants = asArray(form.participants);
     const exists = participants.includes(player.id);
     updateFinishForm(match.id, {
@@ -209,7 +230,7 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
   };
 
   const finishNextMatch = async (match: NextMatch) => {
-    const form = finishForms[match.id] || { homeScore: 0, awayScore: 0, votingEnabled: true, participants: [], stats: {} };
+    const form = finishForms[match.id] || { homeScore: 0, awayScore: 0, votingEnabled: true, participants: [], stats: {}, reportSummary: '', timelineEvents: [] };
     const playerStats = asArray(form.participants).map((playerId) => {
       const player = asArray(players).find((item) => item.id === playerId);
       return {
@@ -223,6 +244,8 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
       homeScore: Number(form.homeScore || 0),
       awayScore: Number(form.awayScore || 0),
       votingEnabled: form.votingEnabled,
+      reportSummary: form.reportSummary,
+      timelineEvents: form.timelineEvents.filter((event) => String(event.minute || '').trim()),
       playerStats
     });
     await load();
@@ -295,39 +318,27 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
         </div>
         <form className="space-y-4" onSubmit={donationForm.handleSubmit((values) => saveDonationPage(values).catch((err) => setError(getApiErrorMessage(err, 'Donacija stranica nije sacuvana.'))))}>
           <div className="grid gap-3 md:grid-cols-2">
-            <Input placeholder="Eyebrow tekst" {...donationForm.register('eyebrow', { required: true })} />
-            <Input placeholder="Naslov stranice" {...donationForm.register('title', { required: true })} />
+            <Field label="Eyebrow tekst"><Input placeholder="Kratki uvod" {...donationForm.register('eyebrow', { required: true })} /></Field>
+            <Field label="Naslov stranice"><Input placeholder="Naslov" {...donationForm.register('title', { required: true })} /></Field>
           </div>
-          <textarea
-            className="min-h-24 w-full rounded border border-white/10 bg-blue-950/80 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-orange-400"
-            placeholder="Uvodni tekst"
-            {...donationForm.register('intro', { required: true })}
-          />
+          <Field label="Uvodni tekst"><Textarea className="min-h-24" placeholder="Uvodni tekst" {...donationForm.register('intro', { required: true })} /></Field>
           <div className="grid gap-3 md:grid-cols-2">
-            <Input placeholder="Naslov bloka: uticaj donacije" {...donationForm.register('impactTitle', { required: true })} />
-            <Input placeholder="Naslov bloka: uplata" {...donationForm.register('paymentTitle', { required: true })} />
+            <Field label="Naslov bloka: uticaj"><Input placeholder="Uticaj donacije" {...donationForm.register('impactTitle', { required: true })} /></Field>
+            <Field label="Naslov bloka: uplata"><Input placeholder="Kako se uplacuje" {...donationForm.register('paymentTitle', { required: true })} /></Field>
           </div>
           <div className="grid gap-3 lg:grid-cols-2">
-            <textarea
-              className="min-h-32 w-full rounded border border-white/10 bg-blue-950/80 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-orange-400"
-              placeholder="Tekst o tome za sta se koristi donacija"
-              {...donationForm.register('impactBody', { required: true })}
-            />
-            <textarea
-              className="min-h-32 w-full rounded border border-white/10 bg-blue-950/80 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-orange-400"
-              placeholder="Tekst za instrukcije uplate"
-              {...donationForm.register('paymentBody', { required: true })}
-            />
+            <Field label="Tekst o uticaju"><Textarea className="min-h-32" placeholder="Tekst o tome za sta se koristi donacija" {...donationForm.register('impactBody', { required: true })} /></Field>
+            <Field label="Tekst za uplatu"><Textarea className="min-h-32" placeholder="Tekst za instrukcije uplate" {...donationForm.register('paymentBody', { required: true })} /></Field>
           </div>
           <div className="grid gap-3 md:grid-cols-3">
-            <Input placeholder="Primalac" {...donationForm.register('recipientName')} />
-            <Input placeholder="Racun / IBAN" {...donationForm.register('bankAccount')} />
-            <Input placeholder="Svrha uplate" {...donationForm.register('paymentPurpose')} />
+            <Field label="Primalac"><Input placeholder="Naziv primaoca" {...donationForm.register('recipientName')} /></Field>
+            <Field label="Racun / IBAN"><Input placeholder="Broj racuna" {...donationForm.register('bankAccount')} /></Field>
+            <Field label="Svrha uplate"><Input placeholder="Svrha" {...donationForm.register('paymentPurpose')} /></Field>
           </div>
           <div className="grid gap-3 md:grid-cols-3">
-            <Input placeholder="CTA label" {...donationForm.register('ctaLabel')} />
-            <Input placeholder="CTA URL / mailto" {...donationForm.register('ctaUrl')} />
-            <Input placeholder="URL slike opcionalno" {...donationForm.register('imageUrl')} />
+            <Field label="CTA label"><Input placeholder="Tekst dugmeta" {...donationForm.register('ctaLabel')} /></Field>
+            <Field label="CTA URL / mailto"><Input placeholder="Link dugmeta" {...donationForm.register('ctaUrl')} /></Field>
+            <Field label="URL slike"><Input placeholder="Opcionalno" {...donationForm.register('imageUrl')} /></Field>
           </div>
           <label className="flex items-center gap-2 rounded border border-white/10 bg-slate-950/40 px-3 py-2 text-sm font-bold text-slate-200">
             <input type="checkbox" {...donationForm.register('isPublished')} />
@@ -346,19 +357,17 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
             <h3 className="mt-1 text-lg font-black">{editingBlock ? 'Uredi sadrzaj' : 'Dodaj sadrzaj'}</h3>
           </div>
           <form className="space-y-3" onSubmit={blockForm.handleSubmit(submitBlock)}>
-            <Input placeholder="Naslov" {...blockForm.register('title', { required: true })} />
-            <Select {...blockForm.register('type')}>
-              <option value="news">Novost</option>
-              <option value="announcement">Obavjestenje</option>
-              <option value="text">Tekst</option>
-            </Select>
-            <Input placeholder="URL slike opcionalno" {...blockForm.register('imageUrl')} />
-            <Input type="number" placeholder="Redoslijed" {...blockForm.register('sortOrder', { valueAsNumber: true })} />
-            <textarea
-              className="min-h-36 w-full rounded border border-white/10 bg-blue-950/80 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-orange-400"
-              placeholder="Sadrzaj"
-              {...blockForm.register('body', { required: true })}
-            />
+            <Field label="Naslov"><Input placeholder="Naslov bloka" {...blockForm.register('title', { required: true })} /></Field>
+            <Field label="Tip bloka">
+              <Select {...blockForm.register('type')}>
+                <option value="news">Novost</option>
+                <option value="announcement">Obavjestenje</option>
+                <option value="text">Tekst</option>
+              </Select>
+            </Field>
+            <Field label="URL slike"><Input placeholder="Opcionalno" {...blockForm.register('imageUrl')} /></Field>
+            <Field label="Redoslijed"><Input type="number" placeholder="0" {...blockForm.register('sortOrder', { valueAsNumber: true })} /></Field>
+            <Field label="Sadrzaj"><Textarea className="min-h-36" placeholder="Sadrzaj" {...blockForm.register('body', { required: true })} /></Field>
             <div className="flex gap-2">
               <Button type="submit" className="flex-1">
                 <FilePlus size={18} />
@@ -386,39 +395,41 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
             <h3 className="mt-1 text-lg font-black">Najavi sljedecu utakmicu</h3>
           </div>
           <form className="space-y-3" onSubmit={nextForm.handleSubmit(createNextMatch)}>
-            <Select
-              {...nextForm.register('seasonId', { valueAsNumber: true })}
-              onChange={(event) => {
-                const seasonId = Number(event.target.value);
-                nextForm.setValue('seasonId', seasonId);
-                nextForm.setValue('homeTeamId', 0);
-                nextForm.setValue('awayTeamId', 0);
-                load(seasonId).catch((err) => setError(getApiErrorMessage(err, 'Ekipe za sezonu nisu ucitane.')));
-              }}
-            >
-              {asArray(seasons).map((season) => (
-                <option key={season.id} value={season.id}>{season.name}</option>
-              ))}
-            </Select>
-            <Select {...nextForm.register('homeTeamId', { valueAsNumber: true })}>
-              <option value={0}>Izaberi domacina</option>
-              {asArray(teams).map((team) => (
-                <option key={team.id} value={team.id}>{team.name}</option>
-              ))}
-            </Select>
-            <Select {...nextForm.register('awayTeamId', { valueAsNumber: true })}>
-              <option value={0}>Izaberi gosta</option>
-              {asArray(teams).map((team) => (
-                <option key={team.id} value={team.id}>{team.name}</option>
-              ))}
-            </Select>
-            <Input type="datetime-local" {...nextForm.register('scheduledAt', { required: true })} />
-            <Input placeholder="Lokacija" {...nextForm.register('venue')} />
-            <textarea
-              className="min-h-24 w-full rounded border border-white/10 bg-blue-950/80 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-orange-400"
-              placeholder="Napomena"
-              {...nextForm.register('note')}
-            />
+            <Field label="Sezona">
+              <Select
+                {...nextForm.register('seasonId', { valueAsNumber: true })}
+                onChange={(event) => {
+                  const seasonId = Number(event.target.value);
+                  nextForm.setValue('seasonId', seasonId);
+                  nextForm.setValue('homeTeamId', 0);
+                  nextForm.setValue('awayTeamId', 0);
+                  load(seasonId).catch((err) => setError(getApiErrorMessage(err, 'Ekipe za sezonu nisu ucitane.')));
+                }}
+              >
+                {asArray(seasons).map((season) => (
+                  <option key={season.id} value={season.id}>{season.name}</option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Domacin">
+              <Select {...nextForm.register('homeTeamId', { valueAsNumber: true })}>
+                <option value={0}>Izaberi domacina</option>
+                {asArray(teams).map((team) => (
+                  <option key={team.id} value={team.id}>{team.name}</option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Gost">
+              <Select {...nextForm.register('awayTeamId', { valueAsNumber: true })}>
+                <option value={0}>Izaberi gosta</option>
+                {asArray(teams).map((team) => (
+                  <option key={team.id} value={team.id}>{team.name}</option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Termin"><Input type="datetime-local" {...nextForm.register('scheduledAt', { required: true })} /></Field>
+            <Field label="Lokacija"><Input placeholder="Lokacija" {...nextForm.register('venue')} /></Field>
+            <Field label="Napomena"><Textarea className="min-h-24" placeholder="Napomena" {...nextForm.register('note')} /></Field>
             <Button type="submit" className="w-full">
               <CalendarPlus size={18} />
               Sacuvaj najavu
@@ -492,20 +503,12 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
                       <h5 className="font-black">Zavrsi mec i objavi rezultat</h5>
                     </div>
                     <div className="grid gap-3 md:grid-cols-2">
-                      <Input
-                        type="number"
-                        min={0}
-                        placeholder={`${match.homeTeam?.shortName} golovi`}
-                        value={finishForms[match.id]?.homeScore ?? 0}
-                        onChange={(event) => updateFinishForm(match.id, { homeScore: Number(event.target.value) })}
-                      />
-                      <Input
-                        type="number"
-                        min={0}
-                        placeholder={`${match.awayTeam?.shortName} golovi`}
-                        value={finishForms[match.id]?.awayScore ?? 0}
-                        onChange={(event) => updateFinishForm(match.id, { awayScore: Number(event.target.value) })}
-                      />
+                      <Field label={`${match.homeTeam?.shortName} golovi`}>
+                        <Input type="number" min={0} placeholder="0" value={finishForms[match.id]?.homeScore ?? 0} onChange={(event) => updateFinishForm(match.id, { homeScore: Number(event.target.value) })} />
+                      </Field>
+                      <Field label={`${match.awayTeam?.shortName} golovi`}>
+                        <Input type="number" min={0} placeholder="0" value={finishForms[match.id]?.awayScore ?? 0} onChange={(event) => updateFinishForm(match.id, { awayScore: Number(event.target.value) })} />
+                      </Field>
                     </div>
                     <label className="mt-3 flex items-center gap-2 rounded border border-white/10 bg-slate-950/40 px-3 py-2 text-sm font-bold text-slate-200">
                       <input
@@ -530,34 +533,26 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
                                   </label>
                                   {selected && (
                                     <div className="mt-2 grid grid-cols-2 gap-2">
-                                      <Input
-                                        type="number"
-                                        min={0}
-                                        placeholder="Golovi"
-                                        value={finishForms[match.id]?.stats[player.id]?.goals ?? 0}
-                                        onChange={(event) =>
-                                          updateFinishForm(match.id, {
-                                            stats: {
-                                              ...(finishForms[match.id]?.stats || {}),
-                                              [player.id]: { ...(finishForms[match.id]?.stats[player.id] || { assists: 0 }), goals: Number(event.target.value) }
-                                            }
-                                          })
-                                        }
-                                      />
-                                      <Input
-                                        type="number"
-                                        min={0}
-                                        placeholder="Asistencije"
-                                        value={finishForms[match.id]?.stats[player.id]?.assists ?? 0}
-                                        onChange={(event) =>
-                                          updateFinishForm(match.id, {
-                                            stats: {
-                                              ...(finishForms[match.id]?.stats || {}),
-                                              [player.id]: { ...(finishForms[match.id]?.stats[player.id] || { goals: 0 }), assists: Number(event.target.value) }
-                                            }
-                                          })
-                                        }
-                                      />
+                                      <Field label="Golovi">
+                                        <Input type="number" min={0} placeholder="0" value={finishForms[match.id]?.stats[player.id]?.goals ?? 0} onChange={(event) =>
+                                            updateFinishForm(match.id, {
+                                              stats: {
+                                                ...(finishForms[match.id]?.stats || {}),
+                                                [player.id]: { ...(finishForms[match.id]?.stats[player.id] || { assists: 0 }), goals: Number(event.target.value) }
+                                              }
+                                            })
+                                          } />
+                                      </Field>
+                                      <Field label="Asistencije">
+                                        <Input type="number" min={0} placeholder="0" value={finishForms[match.id]?.stats[player.id]?.assists ?? 0} onChange={(event) =>
+                                            updateFinishForm(match.id, {
+                                              stats: {
+                                                ...(finishForms[match.id]?.stats || {}),
+                                                [player.id]: { ...(finishForms[match.id]?.stats[player.id] || { goals: 0 }), assists: Number(event.target.value) }
+                                              }
+                                            })
+                                          } />
+                                      </Field>
                                     </div>
                                   )}
                                 </div>
@@ -566,6 +561,93 @@ export const Cms = ({ section = 'all' }: { section?: CmsSection }) => {
                           </div>
                         </div>
                       ))}
+                    </div>
+                    <div className="mt-4">
+                      <Field label="Sazetak izvjestaja">
+                        <Textarea className="min-h-24" placeholder="Kratak opis zavrsene utakmice" value={finishForms[match.id]?.reportSummary || ''} onChange={(event) => updateFinishForm(match.id, { reportSummary: event.target.value })} />
+                      </Field>
+                    </div>
+                    <div className="mt-4 rounded border border-white/10 bg-slate-950/40 p-3">
+                      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-300">Timeline</p>
+                          <h6 className="font-black text-white">Golovi i dogadjaji po minutama</h6>
+                        </div>
+                        <button
+                          type="button"
+                          className="rounded bg-white/10 px-3 py-2 text-xs font-black hover:bg-white/15"
+                          onClick={() => updateFinishForm(match.id, { timelineEvents: [...(finishForms[match.id]?.timelineEvents || []), emptyTimelineEvent(match.homeTeamId)] })}
+                        >
+                          Dodaj dogadjaj
+                        </button>
+                      </div>
+                      <div className="space-y-3">
+                        {(finishForms[match.id]?.timelineEvents || []).map((event, index) => (
+                          <div key={`${match.id}-timeline-${index}`} className="grid gap-2 rounded border border-white/10 bg-blue-950/50 p-3 lg:grid-cols-[80px_140px_1fr_1fr_1fr_auto]">
+                            <Input
+                              value={event.minute}
+                              placeholder="23'"
+                              onChange={(item) => {
+                                const events = [...(finishForms[match.id]?.timelineEvents || [])];
+                                events[index] = { ...events[index], minute: item.target.value };
+                                updateFinishForm(match.id, { timelineEvents: events });
+                              }}
+                            />
+                            <Select
+                              value={event.type}
+                              onChange={(item) => {
+                                const events = [...(finishForms[match.id]?.timelineEvents || [])];
+                                events[index] = { ...events[index], type: item.target.value as MatchTimelineEvent['type'] };
+                                updateFinishForm(match.id, { timelineEvents: events });
+                              }}
+                            >
+                              <option value="goal">Gol</option>
+                              <option value="yellow-card">Zuti karton</option>
+                              <option value="red-card">Crveni karton</option>
+                              <option value="note">Biljeska</option>
+                            </Select>
+                            <Select
+                              value={event.teamId || ''}
+                              onChange={(item) => {
+                                const events = [...(finishForms[match.id]?.timelineEvents || [])];
+                                events[index] = { ...events[index], teamId: item.target.value ? Number(item.target.value) : null };
+                                updateFinishForm(match.id, { timelineEvents: events });
+                              }}
+                            >
+                              <option value="">Ekipa</option>
+                              {[match.homeTeam, match.awayTeam].filter(Boolean).map((team) => <option key={team.id} value={team.id}>{team.shortName}</option>)}
+                            </Select>
+                            <Select
+                              value={event.playerId || ''}
+                              onChange={(item) => {
+                                const events = [...(finishForms[match.id]?.timelineEvents || [])];
+                                events[index] = { ...events[index], playerId: item.target.value ? Number(item.target.value) : null };
+                                updateFinishForm(match.id, { timelineEvents: events });
+                              }}
+                            >
+                              <option value="">Igrac</option>
+                              {asArray(players).map((player) => <option key={player.id} value={player.id}>{player.firstName} {player.lastName}</option>)}
+                            </Select>
+                            <Input
+                              value={event.description || ''}
+                              placeholder="Opis"
+                              onChange={(item) => {
+                                const events = [...(finishForms[match.id]?.timelineEvents || [])];
+                                events[index] = { ...events[index], description: item.target.value };
+                                updateFinishForm(match.id, { timelineEvents: events });
+                              }}
+                            />
+                            <button
+                              type="button"
+                              className="rounded bg-red-500/80 px-3 py-2 text-xs font-black hover:bg-red-500"
+                              onClick={() => updateFinishForm(match.id, { timelineEvents: (finishForms[match.id]?.timelineEvents || []).filter((_, itemIndex) => itemIndex !== index) })}
+                            >
+                              Obrisi
+                            </button>
+                          </div>
+                        ))}
+                        {!(finishForms[match.id]?.timelineEvents || []).length && <p className="text-sm text-slate-400">Timeline mozes dodati odmah ili kasnije u editovanju utakmice.</p>}
+                      </div>
                     </div>
                     <Button type="button" className="mt-4 w-full" onClick={() => finishNextMatch(match)} disabled={!asArray(finishForms[match.id]?.participants).length}>
                       Objavi zavrseni mec

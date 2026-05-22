@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, asArray, unwrap } from '../api/client';
 import { useCardDesign } from '../components/CardDesignProvider';
-import { ErrorPanel, PageTitle, Panel } from '../components/ui';
+import { ErrorPanel, Field, PageTitle, Panel, Select } from '../components/ui';
 import { SeasonSelector } from '../components/SeasonSelector';
 import { Match } from '../types';
 import { formatDateTime } from '../utils/date';
@@ -70,15 +70,13 @@ export const PublicResults = () => {
 
           <section className="mt-5 rounded-md border border-white/10 bg-[#10131b] p-4">
             <div className="grid gap-3 md:grid-cols-[1fr_1fr]">
-              <SeasonSelector value={seasonId} onChange={setSeasonId} />
-              <select
-                className="rounded-md border border-white/10 bg-[#0b0f17] px-3 py-2 text-sm text-white outline-none focus:border-emerald-400"
-                value={teamFilter}
-                onChange={(event) => setTeamFilter(event.target.value)}
-              >
-                <option value="all">Sve ekipe</option>
-                {teams.map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}
-              </select>
+              <Field label="Sezona"><SeasonSelector value={seasonId} onChange={setSeasonId} /></Field>
+              <Field label="Ekipa">
+                <Select value={teamFilter} onChange={(event) => setTeamFilter(event.target.value)}>
+                  <option value="all">Sve ekipe</option>
+                  {teams.map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}
+                </Select>
+              </Field>
             </div>
           </section>
 
@@ -170,11 +168,13 @@ export const PublicResults = () => {
         <Panel className="p-3 sm:p-5">
           <div className="mb-5">
             <div className="grid gap-3 sm:flex sm:flex-wrap">
-              <SeasonSelector value={seasonId} onChange={setSeasonId} />
-              <select className="rounded border border-white/10 bg-blue-950/80 px-3 py-2 text-sm text-white outline-none focus:border-orange-400" value={teamFilter} onChange={(event) => setTeamFilter(event.target.value)}>
-                <option value="all">Sve ekipe</option>
-                {teams.map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}
-              </select>
+              <Field label="Sezona"><SeasonSelector value={seasonId} onChange={setSeasonId} /></Field>
+              <Field label="Ekipa">
+                <Select value={teamFilter} onChange={(event) => setTeamFilter(event.target.value)}>
+                  <option value="all">Sve ekipe</option>
+                  {teams.map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}
+                </Select>
+              </Field>
             </div>
           </div>
           <div className="mb-5 flex items-center gap-3 text-orange-300">

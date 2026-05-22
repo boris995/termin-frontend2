@@ -1,4 +1,4 @@
-import { ArrowLeft, ListOrdered, Trophy, Users } from 'lucide-react';
+import { ArrowLeft, Download, ListOrdered, Trophy, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, asArray, unwrap } from '../api/client';
@@ -35,6 +35,7 @@ export const PublicSeasonDetail = () => {
 
   const topScorer = [...players].sort((a, b) => b.goals - a.goals)[0];
   const totalGoals = matches.reduce((sum, match) => sum + match.homeScore + match.awayScore, 0);
+  const apiBaseUrl = import.meta.env.VITE_API_URL || '/api';
 
   return (
     <main className="px-4 py-8 lg:px-8">
@@ -49,7 +50,18 @@ export const PublicSeasonDetail = () => {
           <>
         <div className="mb-6">
           <p className="text-xs font-black uppercase tracking-[0.22em] text-orange-300">Sezona #{season.number}</p>
-          <h1 className="mt-2 text-4xl font-black text-white md:text-5xl">{season.name}</h1>
+          <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
+            <h1 className="text-4xl font-black text-white md:text-5xl">{season.name}</h1>
+            <a
+              className="inline-flex items-center gap-2 rounded border border-white/10 bg-white/10 px-4 py-2 text-sm font-black text-white hover:border-orange-300/50"
+              href={`${apiBaseUrl}/seasons/${season.id}/export.html`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Download size={17} />
+              Export HTML
+            </a>
+          </div>
         </div>
 
         <div className="mb-6 grid gap-4 md:grid-cols-4">

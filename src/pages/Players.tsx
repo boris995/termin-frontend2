@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router-dom';
 import { api, asArray, unwrap } from '../api/client';
-import { Button, ErrorPanel, Input, PageTitle, Panel, Select } from '../components/ui';
+import { Button, ErrorPanel, Field, Input, PageTitle, Panel, Select } from '../components/ui';
 import { Player, Team } from '../types';
 
 export const Players = () => {
@@ -96,20 +96,24 @@ export const Players = () => {
             </p>
           )}
           <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
-            <Input placeholder="Ime" {...register('firstName', { required: true })} />
-            <Input placeholder="Prezime" {...register('lastName', { required: true })} />
-            <Input placeholder="Nadimak opcionalno" {...register('nickname')} />
-            <Select {...register('teamId')}>
-              {teams.map((team) => (
-                <option key={team.id} value={team.id}>{team.name}</option>
-              ))}
-            </Select>
-            <Select {...register('position')}>
-              {['igrac', 'golman', 'golman-igrac'].map((pos) => (
-                <option key={pos} value={pos}>{pos}</option>
-              ))}
-            </Select>
-            <Input type="number" min={1} placeholder="Broj dresa" {...register('shirtNumber')} />
+            <Field label="Ime"><Input placeholder="Ime igraca" {...register('firstName', { required: true })} /></Field>
+            <Field label="Prezime"><Input placeholder="Prezime igraca" {...register('lastName', { required: true })} /></Field>
+            <Field label="Nadimak"><Input placeholder="Opcionalno" {...register('nickname')} /></Field>
+            <Field label="Ekipa">
+              <Select {...register('teamId')}>
+                {teams.map((team) => (
+                  <option key={team.id} value={team.id}>{team.name}</option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Pozicija">
+              <Select {...register('position')}>
+                {['igrac', 'golman', 'golman-igrac'].map((pos) => (
+                  <option key={pos} value={pos}>{pos}</option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Broj dresa"><Input type="number" min={1} placeholder="9" {...register('shirtNumber')} /></Field>
             <Button type="submit" className="w-full" disabled={!teams.length}>
               <Plus size={18} />
               Dodaj

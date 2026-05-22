@@ -1,4 +1,4 @@
-import { ArrowLeft, Bell, CalendarClock, MapPin, Star, Trophy } from 'lucide-react';
+import { ArrowLeft, BarChart3, Bell, CalendarClock, Clock3, FileText, MapPin, Star, Trophy } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, unwrap } from '../api/client';
@@ -72,6 +72,24 @@ export const PublicMatchDetail = () => {
   }, [match?.ratingSummary, match?.playerStats]);
   const votingEnabled = match?.votingEnabled ?? true;
   const isPremium = siteDesign === 'premium';
+  const timelineEvents = [...(match?.timelineEvents || [])].sort((a, b) => parseInt(a.minute, 10) - parseInt(b.minute, 10));
+  const playerName = (playerId?: number | null) => {
+    const stat = match?.playerStats?.find((item) => item.player.id === playerId);
+    return stat ? `${stat.player.firstName[0]}. ${stat.player.lastName}` : '';
+  };
+  const teamName = (teamId?: number | null) => {
+    if (teamId === match?.homeTeam.id) return match?.homeTeam.shortName || match?.homeTeam.name || '';
+    if (teamId === match?.awayTeam.id) return match?.awayTeam.shortName || match?.awayTeam.name || '';
+    return '';
+  };
+  const eventLabel = (type: string) => ({
+    goal: 'GOOOL!',
+    'yellow-card': 'Zuti karton',
+    'red-card': 'Crveni karton',
+    note: 'Biljeska'
+  }[type] || 'Dogadjaj');
+  const goalsByTeam = (teamId: number) => (match?.playerStats || []).filter((stat) => stat.team.id === teamId).reduce((sum, stat) => sum + Number(stat.goals || 0), 0);
+  const assistsByTeam = (teamId: number) => (match?.playerStats || []).filter((stat) => stat.team.id === teamId).reduce((sum, stat) => sum + Number(stat.assists || 0), 0);
 
   if (error) {
     return (
@@ -195,12 +213,43 @@ export const PublicMatchDetail = () => {
           </section>
 
           <nav className="mt-4 flex gap-2 overflow-x-auto rounded-md border border-white/10 bg-[#10131b] p-2 text-[0.62rem] font-black uppercase tracking-[0.16em] text-slate-500">
-            {['Detalji', 'Sastavi', 'Statistika', 'Tijek', 'Medjusobni susreti'].map((item, index) => (
-              <span key={item} className={`shrink-0 rounded px-3 py-2 ${index === 1 ? 'bg-emerald-400 text-slate-950' : 'bg-white/5'}`}>
+            {['Detalji', 'Statistika', 'Sastavi', 'Tijek utakmice', 'Izvjestaj'].map((item, index) => (
+              <span key={item} className={`shrink-0 rounded px-3 py-2 ${index === 4 ? 'bg-emerald-400 text-slate-950' : 'bg-white/5'}`}>
                 {item}
               </span>
             ))}
           </nav>
+
+          <section className="mt-4 rounded-md border border-white/10 bg-[#10131b] p-4">
+            <div className="mb-3 flex items-center gap-2 text-emerald-400">
+              <FileText size={18} />
+              <h2 className="text-sm font-black uppercase tracking-[0.12em] text-white">Sazetak utakmice</h2>
+            </div>
+            <p className="text-sm leading-6 text-slate-300">
+              {match.reportSummary || `${match.homeTeam.name} i ${match.awayTeam.name} zavrsili su duel rezultatom ${match.homeScore}:${match.awayScore}. Detalji toka utakmice se dopunjavaju kroz admin timeline.`}
+            </p>
+          </section>
+
+          <section className="mt-4 rounded-md border border-white/10 bg-[#10131b] p-4">
+            <div className="mb-4 flex items-center gap-2 text-emerald-400">
+              <Clock3 size={18} />
+              <h2 className="text-sm font-black uppercase tracking-[0.12em] text-white">Tijek utakmice</h2>
+            </div>
+            <div className="space-y-3">
+              {timelineEvents.map((event, index) => (
+                <div key={`${event.minute}-${index}`} className="grid grid-cols-[54px_1fr] gap-3 border-b border-white/10 pb-3 last:border-b-0 last:pb-0">
+                  <p className="text-right text-xs font-black text-slate-500">{event.minute}'</p>
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-400">{eventLabel(event.type)} {teamName(event.teamId) && `| ${teamName(event.teamId)}`}</p>
+                    <p className="mt-1 text-sm font-bold text-white">{playerName(event.playerId) || event.description || 'Dogadjaj'}</p>
+                    {event.assistPlayerId && <p className="text-xs text-slate-400">Asistencija: {playerName(event.assistPlayerId)}</p>}
+                    {event.description && playerName(event.playerId) && <p className="text-xs text-slate-400">{event.description}</p>}
+                  </div>
+                </div>
+              ))}
+              {!timelineEvents.length && <p className="text-sm text-slate-400">Timeline jos nije unesen.</p>}
+            </div>
+          </section>
 
           <section className="mt-4 rounded-md border border-white/10 bg-[#10131b] p-4">
             <h2 className="text-sm font-black uppercase tracking-[0.1em] text-white">Sastavi i ocjene</h2>
@@ -361,6 +410,64 @@ export const PublicMatchDetail = () => {
               <span className="font-black text-white">Nerijesen mec</span>
             )}
           </p>
+        </Panel>
+
+        <div className="mt-4 grid grid-cols-5 border-b-2 border-[#504d43] text-center text-[0.62rem] font-black uppercase tracking-[0.12em] text-[#504d43]">
+          {['Detalji', 'Statistika', 'Postave', 'Tijek utakmice', 'Izvjestaj'].map((item, index) => (
+            <span key={item} className={`px-1 py-3 ${index === 4 ? 'border-b-4 border-[#8f332d] text-[#8f332d]' : ''}`}>{item}</span>
+          ))}
+        </div>
+
+        <Panel className="mt-5 p-5">
+          <div className="mb-3 flex items-center gap-2 text-[#2d2c27]">
+            <FileText size={18} />
+            <h2 className="text-sm font-black uppercase tracking-[0.12em]">Sazetak utakmice</h2>
+          </div>
+          <p className="text-sm leading-6 text-[#504d43]">
+            {match.reportSummary || `${match.homeTeam.name} i ${match.awayTeam.name} odigrali su mec koji je zavrsen rezultatom ${match.homeScore}:${match.awayScore}. Timeline i detalji izvjestaja se mogu dopuniti kroz admin panel.`}
+          </p>
+        </Panel>
+
+        <Panel className="mt-5 p-5">
+          <div className="mb-4 flex items-center gap-2 text-[#2d2c27]">
+            <Clock3 size={19} />
+            <h2 className="text-sm font-black uppercase tracking-[0.12em]">Tijek utakmice</h2>
+          </div>
+          <div className="space-y-0">
+            {timelineEvents.map((event, index) => (
+              <div key={`${event.minute}-${index}`} className="grid grid-cols-[54px_1fr] gap-3 border-b border-[#504d43]/30 py-3 first:pt-0 last:border-b-0 last:pb-0">
+                <p className="text-right text-xs font-black text-[#504d43]">{event.minute}'</p>
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.12em] text-[#8f332d]">{eventLabel(event.type)} {teamName(event.teamId) && `| ${teamName(event.teamId)}`}</p>
+                  <p className="mt-1 text-sm font-black text-[#2d2c27]">{playerName(event.playerId) || event.description || 'Dogadjaj'}</p>
+                  {event.assistPlayerId && <p className="text-xs font-bold text-[#504d43]">Asistencija: {playerName(event.assistPlayerId)}</p>}
+                  {event.description && playerName(event.playerId) && <p className="text-xs text-[#504d43]">{event.description}</p>}
+                </div>
+              </div>
+            ))}
+            {!timelineEvents.length && <p className="text-sm text-[#504d43]">Timeline jos nije unesen.</p>}
+          </div>
+        </Panel>
+
+        <Panel className="mt-5 p-5">
+          <div className="mb-4 flex items-center gap-2 text-[#2d2c27]">
+            <BarChart3 size={19} />
+            <h2 className="text-sm font-black uppercase tracking-[0.12em]">Najzanimljivije statistike</h2>
+          </div>
+          <div className="space-y-2 text-xs font-black uppercase tracking-[0.08em] text-[#2d2c27]">
+            {[
+              ['Golovi igraca', goalsByTeam(match.homeTeam.id), goalsByTeam(match.awayTeam.id)],
+              ['Asistencije', assistsByTeam(match.homeTeam.id), assistsByTeam(match.awayTeam.id)],
+              ['Ucesnici', match.playerStats?.filter((stat) => stat.team.id === match.homeTeam.id).length || 0, match.playerStats?.filter((stat) => stat.team.id === match.awayTeam.id).length || 0],
+              ['Glasovi publike', Object.values(match.ratingSummary || {}).reduce((sum, item) => sum + item.count, 0), votingEnabled ? 'Otvoreno' : 'Zakljucano']
+            ].map(([label, home, away]) => (
+              <div key={label} className="grid grid-cols-[48px_1fr_48px] items-center gap-2">
+                <span className="text-right">{home}</span>
+                <span className="border-y border-[#8f332d]/35 py-1 text-center">{label}</span>
+                <span>{away}</span>
+              </div>
+            ))}
+          </div>
         </Panel>
 
         <Panel className="mt-5 p-5">

@@ -6,6 +6,7 @@ import { AppLayout } from './components/AppLayout';
 import { CardDesignProvider } from './components/CardDesignProvider';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { PublicLayout } from './components/PublicLayout';
+import { AuditLogs } from './pages/AuditLogs';
 import { Dashboard } from './pages/Dashboard';
 import { Home } from './pages/Home';
 import { Login } from './pages/Login';
@@ -20,9 +21,11 @@ import { PublicMatchDetail } from './pages/PublicMatchDetail';
 import { PublicResults } from './pages/PublicResults';
 import { PublicSeasonDetail } from './pages/PublicSeasonDetail';
 import { PublicSeasons } from './pages/PublicSeasons';
+import { PublicSearch } from './pages/PublicSearch';
 import { Seasons } from './pages/Seasons';
 import { Teams } from './pages/Teams';
 import { Cms } from './pages/Cms';
+import { VotingAnalytics } from './pages/VotingAnalytics';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -41,10 +44,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="igraci/:id" element={<PublicPlayerDetail />} />
             <Route path="najava" element={<PublicAnnouncement />} />
             <Route path="donacije" element={<PublicDonation />} />
+            <Route path="pretraga" element={<PublicSearch />} />
           </Route>
           <Route path="/" element={<ProtectedRoute />}>
             <Route path="/" element={<AppLayout />}>
               <Route path="dashboard" element={<Dashboard />} />
+              <Route path="voting-analytics" element={<VotingAnalytics />} />
+              <Route path="audit-logs" element={<AuditLogs />} />
               <Route path="cms" element={<Navigate to="/cms/settings" replace />} />
               <Route path="cms/settings" element={<Cms section="settings" />} />
               <Route path="cms/content" element={<Cms section="content" />} />

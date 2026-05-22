@@ -61,6 +61,9 @@ export interface PlayerMatchStat {
 
 export interface Match {
   id: number;
+  seasonId?: number;
+  homeTeamId?: number;
+  awayTeamId?: number;
   matchNumber: number;
   homeScore: number;
   awayScore: number;
@@ -68,6 +71,8 @@ export interface Match {
   startedAt?: string | null;
   endedAt?: string | null;
   votingEnabled?: boolean;
+  reportSummary?: string | null;
+  timelineEvents?: MatchTimelineEvent[];
   status: 'played' | 'cancelled';
   homeTeam: Team;
   awayTeam: Team;
@@ -75,6 +80,15 @@ export interface Match {
   playerStats?: Array<{ player: Player; team: Team; goals: number; assists: number }>;
   ratingSummary?: Record<number, { count: number; average: number; total: number }>;
   motmSummary?: Record<number, number>;
+}
+
+export interface MatchTimelineEvent {
+  minute: string;
+  type: 'goal' | 'yellow-card' | 'red-card' | 'note';
+  teamId?: number | null;
+  playerId?: number | null;
+  assistPlayerId?: number | null;
+  description?: string | null;
 }
 
 export interface CmsBlock {
@@ -147,4 +161,56 @@ export interface DonationPage {
   ctaUrl?: string | null;
   imageUrl?: string | null;
   isPublished: boolean;
+}
+
+export interface AuditLog {
+  id: number;
+  userId?: number | null;
+  userEmail?: string | null;
+  action: 'create' | 'update' | 'delete' | 'start' | 'finish' | 'settings';
+  entityType: string;
+  entityId?: string | null;
+  label?: string | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface VotingAnalyticsPlayerAverage {
+  playerId: number;
+  playerName: string;
+  teamId: number;
+  teamShortName: string;
+  average: number;
+  count: number;
+}
+
+export interface VotingAnalyticsMatchSummary {
+  matchId: number;
+  matchNumber: number;
+  playedAt: string;
+  homeTeam?: Team;
+  awayTeam?: Team;
+  average: number | null;
+  count: number;
+  topRated: VotingAnalyticsPlayerAverage | null;
+  playerAverages: VotingAnalyticsPlayerAverage[];
+}
+
+export interface VotingAnalyticsPlayerTrend {
+  playerId: number;
+  playerName: string;
+  teamId: number;
+  teamShortName: string;
+  overallAverage: number | null;
+  totalVotes: number;
+  trend: Array<{ matchId: number; matchNumber: number; average: number; count: number }>;
+}
+
+export interface VotingAnalyticsData {
+  season: Season;
+  totalVotes: number;
+  ratedMatches: number;
+  ratedPlayers: number;
+  matchSummaries: VotingAnalyticsMatchSummary[];
+  playerTrends: VotingAnalyticsPlayerTrend[];
 }

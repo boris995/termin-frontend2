@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { api, unwrap } from '../api/client';
-import { Button, Input, Panel } from '../components/ui';
+import { Button, Field, Input, Panel } from '../components/ui';
 
 interface LoginForm {
   email: string;
@@ -36,8 +36,12 @@ export const Login = () => {
           <p className="mt-2 text-sm text-slate-400">Prijavi se za dashboard, CMS i unos rezultata.</p>
         </div>
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-          <Input type="email" placeholder="Email" {...register('email', { required: true })} />
-          <Input type="password" placeholder="Lozinka" {...register('password', { required: true })} />
+          <Field label="Email">
+            <Input type="email" placeholder="admin@football.com" {...register('email', { required: true })} />
+          </Field>
+          <Field label="Lozinka">
+            <Input type="password" placeholder="Unesi lozinku" {...register('password', { required: true })} />
+          </Field>
           {error && <p className="rounded border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">{error}</p>}
           <Button className="w-full" type="submit">
             <LogIn size={18} />

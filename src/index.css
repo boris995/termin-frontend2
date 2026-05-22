@@ -169,6 +169,22 @@ select {
   font: inherit;
 }
 
+body input[type='checkbox'],
+body input[type='radio'],
+body input[type='range'] {
+  accent-color: #34d399;
+}
+
+body.theme-classic input[type='checkbox'],
+body.theme-classic input[type='radio'],
+body.theme-classic input[type='range'] {
+  accent-color: #8f332d;
+}
+
+body input[type='range'] {
+  cursor: pointer;
+}
+
 .glass {
   border: 1px solid rgb(255 255 255 / 0.1);
   background: rgb(15 23 42 / 0.72);

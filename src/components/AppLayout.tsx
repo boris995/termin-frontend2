@@ -1,4 +1,4 @@
-import { BarChart3, Calendar, CalendarPlus, FilePlus, FileText, HeartHandshake, Home, ListChecks, LogOut, Menu, Settings, Shield, Trophy, Users, X } from 'lucide-react';
+import { BarChart3, Calendar, CalendarPlus, ClipboardList, FilePlus, FileText, HeartHandshake, Home, ListChecks, LogOut, Menu, Settings, Shield, Star, Trophy, Users, X } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useCardDesign } from './CardDesignProvider';
@@ -6,6 +6,8 @@ import { useCardDesign } from './CardDesignProvider';
 const links = [
   { to: '/', label: 'Home', icon: Home },
   { to: '/dashboard', label: 'Dashboard', icon: BarChart3 },
+  { to: '/voting-analytics', label: 'Ocjene', icon: Star },
+  { to: '/audit-logs', label: 'Audit log', icon: ClipboardList },
   { to: '/seasons', label: 'Sezone', icon: Trophy },
   { to: '/seasons/1/teams', label: 'Timovi', icon: Shield },
   { to: '/seasons/1/players', label: 'Igrači', icon: Users },

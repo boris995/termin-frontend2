@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { api, asArray, unwrap } from '../api/client';
-import { Button, ErrorPanel, Input, PageTitle, Panel, Select } from '../components/ui';
+import { Button, ErrorPanel, Field, Input, PageTitle, Panel, Select } from '../components/ui';
 import { Season } from '../types';
 
 interface SeasonForm {
@@ -76,13 +76,15 @@ export const Seasons = () => {
             <Panel key={season.id}>
               {editingId === season.id ? (
                 <form className="space-y-3" onSubmit={editForm.handleSubmit(saveEdit)}>
-                  <Input type="number" min={1} placeholder="Broj sezone" {...editForm.register('number', { valueAsNumber: true })} />
-                  <Input placeholder={`Sezona ${season.number}`} {...editForm.register('name')} />
-                  <Input type="number" min={1} placeholder="Cilj pobjeda" {...editForm.register('winsToWinSeason', { valueAsNumber: true })} />
-                  <Select {...editForm.register('status')}>
-                    <option value="active">active</option>
-                    <option value="completed">completed</option>
-                  </Select>
+                  <Field label="Broj sezone"><Input type="number" min={1} placeholder="1" {...editForm.register('number', { valueAsNumber: true })} /></Field>
+                  <Field label="Naziv sezone"><Input placeholder={`Sezona ${season.number}`} {...editForm.register('name')} /></Field>
+                  <Field label="Cilj pobjeda"><Input type="number" min={1} placeholder="8" {...editForm.register('winsToWinSeason', { valueAsNumber: true })} /></Field>
+                  <Field label="Status">
+                    <Select {...editForm.register('status')}>
+                      <option value="active">active</option>
+                      <option value="completed">completed</option>
+                    </Select>
+                  </Field>
                   <div className="flex gap-2">
                     <Button type="submit" className="flex-1">
                       <Save size={17} />
@@ -123,9 +125,9 @@ export const Seasons = () => {
           <h3 className="mb-4 text-lg font-black">Nova sezona</h3>
           <p className="mb-4 text-sm text-slate-400">Ako ne upises broj ili naziv, sistem ce napraviti #{nextNumber} i naziv "Sezona {nextNumber}".</p>
           <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
-            <Input type="number" min={1} placeholder={`Broj (${nextNumber})`} {...register('number')} />
-            <Input placeholder={`Naziv opcionalno (Sezona ${nextNumber})`} {...register('name')} />
-            <Input type="number" min={1} placeholder="Cilj pobjeda" {...register('winsToWinSeason', { valueAsNumber: true })} />
+            <Field label="Broj sezone"><Input type="number" min={1} placeholder={`Broj (${nextNumber})`} {...register('number')} /></Field>
+            <Field label="Naziv sezone"><Input placeholder={`Opcionalno (Sezona ${nextNumber})`} {...register('name')} /></Field>
+            <Field label="Cilj pobjeda"><Input type="number" min={1} placeholder="8" {...register('winsToWinSeason', { valueAsNumber: true })} /></Field>
             {error && <p className="rounded border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">{error}</p>}
             <Button type="submit" className="w-full">
               <Plus size={18} />

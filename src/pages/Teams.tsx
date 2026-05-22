@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router-dom';
 import { api, asArray, unwrap } from '../api/client';
-import { Button, ErrorPanel, Input, PageTitle, Panel } from '../components/ui';
+import { Button, ErrorPanel, Field, Input, PageTitle, Panel } from '../components/ui';
 import { Player, Team } from '../types';
 
 interface TeamForm {
@@ -96,11 +96,11 @@ export const Teams = () => {
               <Panel key={team.id}>
                 {editingId === team.id ? (
                   <form className="space-y-3" onSubmit={editForm.handleSubmit(saveEdit)}>
-                    <Input placeholder="Naziv ekipe" {...editForm.register('name', { required: true })} />
-                    <Input maxLength={4} placeholder="Kratki naziv" {...editForm.register('shortName', { required: true })} />
-                    <Input placeholder="Logo URL opcionalno" {...editForm.register('logoUrl')} />
-                    <Input placeholder="Predstavnik opcionalno" {...editForm.register('representativeName')} />
-                    <Input type="color" {...editForm.register('primaryColor')} />
+                    <Field label="Naziv ekipe"><Input placeholder="Bijeli" {...editForm.register('name', { required: true })} /></Field>
+                    <Field label="Kratki naziv"><Input maxLength={4} placeholder="BIJ" {...editForm.register('shortName', { required: true })} /></Field>
+                    <Field label="Logo URL"><Input placeholder="Opcionalno" {...editForm.register('logoUrl')} /></Field>
+                    <Field label="Predstavnik"><Input placeholder="Opcionalno" {...editForm.register('representativeName')} /></Field>
+                    <Field label="Primarna boja"><Input type="color" {...editForm.register('primaryColor')} /></Field>
                     <div className="flex gap-2">
                       <Button type="submit" className="flex-1">
                         <Save size={17} />
@@ -154,11 +154,11 @@ export const Teams = () => {
           <h3 className="mb-4 text-lg font-black">Dodaj ekipu</h3>
           <p className="mb-4 text-sm text-slate-400">Svaka sezona moze imati najvise dvije ekipe. Ekipe pripadaju samo ovoj sezoni.</p>
           <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
-            <Input placeholder="Naziv ekipe" {...register('name', { required: true })} />
-            <Input maxLength={4} placeholder="Kratki naziv" {...register('shortName', { required: true })} />
-            <Input placeholder="Logo URL opcionalno" {...register('logoUrl')} />
-            <Input placeholder="Predstavnik opcionalno" {...register('representativeName')} />
-            <Input type="color" {...register('primaryColor')} />
+            <Field label="Naziv ekipe"><Input placeholder="Bijeli" {...register('name', { required: true })} /></Field>
+            <Field label="Kratki naziv"><Input maxLength={4} placeholder="BIJ" {...register('shortName', { required: true })} /></Field>
+            <Field label="Logo URL"><Input placeholder="Opcionalno" {...register('logoUrl')} /></Field>
+            <Field label="Predstavnik"><Input placeholder="Opcionalno" {...register('representativeName')} /></Field>
+            <Field label="Primarna boja"><Input type="color" {...register('primaryColor')} /></Field>
             {error && <p className="rounded border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">{error}</p>}
             <Button disabled={teams.length >= 2} type="submit" className="w-full">
               <Plus size={18} />
