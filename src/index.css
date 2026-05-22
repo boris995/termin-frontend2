@@ -4,11 +4,13 @@
 
 html {
   background: #172554;
+  overflow-x: hidden;
 }
 
 body {
   margin: 0;
   min-width: 320px;
+  overflow-x: hidden;
   color: #f8fafc;
   background:
     radial-gradient(circle at top left, rgba(249, 115, 22, 0.24), transparent 34rem),

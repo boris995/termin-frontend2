@@ -1,9 +1,9 @@
-import { CalendarClock, ChevronRight, ListOrdered, Shield, Trophy } from 'lucide-react';
+import { CalendarClock, ChevronRight, ListOrdered, Rows3, Shield, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, asArray, unwrap } from '../api/client';
 import { useCardDesign } from '../components/CardDesignProvider';
-import { ErrorPanel, Field, PageTitle, Panel, Select } from '../components/ui';
+import { ErrorPanel, Field, Select } from '../components/ui';
 import { SeasonSelector } from '../components/SeasonSelector';
 import { Match } from '../types';
 import { formatDateTime } from '../utils/date';
@@ -161,62 +161,115 @@ export const PublicResults = () => {
   }
 
   return (
-    <main className="px-3 py-5 sm:px-4 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <PageTitle eyebrow="Rezultati" title="Svi odigrani mecevi" />
-        {error && <ErrorPanel message={error} />}
-        <Panel className="p-3 sm:p-5">
-          <div className="mb-5">
-            <div className="grid gap-3 sm:flex sm:flex-wrap">
-              <Field label="Sezona"><SeasonSelector value={seasonId} onChange={setSeasonId} /></Field>
-              <Field label="Ekipa">
-                <Select value={teamFilter} onChange={(event) => setTeamFilter(event.target.value)}>
-                  <option value="all">Sve ekipe</option>
-                  {teams.map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}
-                </Select>
-              </Field>
-            </div>
+    <main className="min-h-screen overflow-x-hidden bg-[#d8d2c3] px-3 py-4 text-[#2d2c27] sm:px-6 sm:py-7 lg:px-8">
+      <div className="mx-auto w-full max-w-6xl">
+        <div className="mb-5 h-px bg-[#2d2c27]" />
+        <header className="mb-5 text-center">
+          <div className="flex items-center justify-center gap-4 text-[#9b382f] sm:gap-8">
+            <span className="text-xl">☆</span>
+            <h1 className="text-5xl font-black uppercase leading-none tracking-[0.04em] text-[#2f3030] sm:text-6xl lg:text-7xl">Rezultati</h1>
+            <span className="text-xl">☆</span>
           </div>
-          <div className="mb-5 flex items-center gap-3 text-orange-300">
-            <ListOrdered size={22} />
-            <h2 className="text-xl font-black text-white">Match log</h2>
+          <div className="mx-auto mt-3 grid max-w-xl grid-cols-[1fr_auto_1fr] items-center gap-3">
+            <span className="h-px bg-[#8d8476]" />
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-[#9b382f]">Sve utakmice</p>
+            <span className="h-px bg-[#8d8476]" />
           </div>
-          <div className="space-y-4">
-            {filteredMatches.map((match) => (
-              <Link key={match.id} to={`/rezultati/${match.id}`} className="block rounded-lg border border-white/10 bg-blue-950/70 p-4 transition hover:border-orange-300/50">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="inline-flex rounded bg-orange-500 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-blue-950">
-                    Matchday {match.matchNumber}
-                  </p>
-                  <p className="text-right text-xs font-bold text-slate-400">{formatDateTime(match.playedAt)}</p>
-                </div>
+        </header>
 
-                <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-start gap-3">
-                  <div>
-                    <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">{match.homeTeam.shortName}</p>
-                    <h3 className="mt-1 text-xl font-black leading-tight text-white">{match.homeTeam.name}</h3>
-                  </div>
-                  <div className="pt-6 text-xs font-black uppercase tracking-[0.16em] text-orange-300">vs</div>
-                  <div className="text-right">
-                    <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">{match.awayTeam.shortName}</p>
-                    <h3 className="mt-1 text-xl font-black leading-tight text-white">{match.awayTeam.name}</h3>
-                  </div>
-                </div>
+        {error && <div className="mb-4"><ErrorPanel message={error} /></div>}
 
-                <div className="mt-4 rounded bg-white/10 px-5 py-4 text-center text-5xl font-black leading-none text-white">
-                  {match.homeScore}:{match.awayScore}
-                </div>
+        <section className="mb-4 grid grid-cols-3 gap-2 text-[0.64rem] font-black uppercase tracking-[0.06em] sm:text-sm">
+          <button type="button" className="inline-flex items-center justify-center gap-2 rounded-[2px] border-2 border-[#642b26] bg-[#9b382f] px-2 py-3 text-[#f4eddd]">
+            <CalendarClock size={15} />
+            Sve utakmice
+          </button>
+          <button type="button" className="inline-flex items-center justify-center gap-2 rounded-[2px] border-2 border-[#504d43] bg-[#e8e0d0] px-2 py-3 text-[#504d43]">
+            <Rows3 size={15} />
+            Po kolima
+          </button>
+          <button type="button" className="inline-flex items-center justify-center gap-2 rounded-[2px] border-2 border-[#504d43] bg-[#e8e0d0] px-2 py-3 text-[#504d43]">
+            <Shield size={15} />
+            Po timovima
+          </button>
+        </section>
 
-                <p className="mt-3 text-center text-xs font-bold uppercase tracking-[0.16em] text-orange-300">
-                  {match.winnerTeam ? `Pobjednik: ${match.winnerTeam.shortName}` : 'Nerijeseno'}
-                </p>
-              </Link>
-            ))}
-            {!filteredMatches.length && !error && <p className="text-slate-400">Nema rezultata iz backend-a.</p>}
+        <section className="mb-4 grid gap-3 md:grid-cols-[1fr_1fr]">
+          <Field label="Sezona" className="classic-results-season">
+            <SeasonSelector value={seasonId} onChange={setSeasonId} />
+          </Field>
+          <Field label="Ekipa">
+            <Select value={teamFilter} onChange={(event) => setTeamFilter(event.target.value)}>
+              <option value="all">Sve ekipe</option>
+              {teams.map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}
+            </Select>
+          </Field>
+        </section>
+
+        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {filteredMatches.map((match) => (
+            <ClassicResultCard key={match.id} match={match} />
+          ))}
+          {!filteredMatches.length && !error && (
+            <p className="rounded-[3px] border-2 border-[#504d43] bg-[#e8e0d0] p-5 text-sm font-bold text-[#504d43] md:col-span-2 xl:col-span-3">
+              Nema rezultata iz backend-a.
+            </p>
+          )}
+        </section>
+
+        {filteredMatches.length > 0 && (
+          <div className="mt-4 flex justify-center">
+            <button type="button" className="inline-flex items-center gap-2 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#504d43]">
+              Ucitaj jos <ChevronRight className="rotate-90" size={16} />
+            </button>
           </div>
-        </Panel>
+        )}
       </div>
     </main>
   );
 };
+
+const ClassicResultCard = ({ match }: { match: Match }) => {
+  const homeWon = match.winnerTeam?.id === match.homeTeam.id;
+  const awayWon = match.winnerTeam?.id === match.awayTeam.id;
+  const date = new Date(match.playedAt);
+  const dateLabel = Number.isNaN(date.getTime())
+    ? formatDateTime(match.playedAt)
+    : `${date.toLocaleDateString('sr-Latn-BA', { day: '2-digit', month: '2-digit', year: 'numeric' })} | ${date.toLocaleTimeString('sr-Latn-BA', { hour: '2-digit', minute: '2-digit' })}`;
+
+  return (
+    <Link
+      to={`/rezultati/${match.id}`}
+      className="block rounded-[3px] border-2 border-[#504d43] bg-[#e8e0d0] p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.32)] transition hover:border-[#9b382f]"
+    >
+      <div className="text-center">
+        <p className="text-sm font-black uppercase tracking-[0.12em] text-[#504d43]">
+          <span className={homeWon || awayWon ? 'text-[#9b382f]' : ''}>☆</span> {match.matchNumber}. kolo <span className={homeWon || awayWon ? 'text-[#9b382f]' : ''}>☆</span>
+        </p>
+        <p className="mt-1 text-[0.68rem] font-black uppercase tracking-[0.06em] text-[#9b382f]">{dateLabel}</p>
+      </div>
+
+      <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+        <ClassicResultTeam name={match.homeTeam.name} shortName={match.homeTeam.shortName} won={homeWon} />
+        <div className="text-center">
+          <p className="text-5xl font-black leading-none tracking-[0.02em] text-[#9b382f] sm:text-6xl">{match.homeScore}:{match.awayScore}</p>
+          <p className="mt-2 text-[0.68rem] font-black uppercase tracking-[0.18em] text-[#504d43]">{match.status === 'played' ? 'Kraj' : match.status}</p>
+        </div>
+        <ClassicResultTeam name={match.awayTeam.name} shortName={match.awayTeam.shortName} won={awayWon} />
+      </div>
+    </Link>
+  );
+};
+
+const ClassicResultTeam = ({ name, shortName, won }: { name: string; shortName?: string; won: boolean }) => (
+  <div className="min-w-0 text-center">
+    <div className={`mx-auto grid h-16 w-16 place-items-center rounded-b-[18px] rounded-t-md border-2 border-[#504d43] ${won ? 'bg-[#d7c3b8]' : 'bg-[#d9d0bd]'}`}>
+      <div className="grid h-11 w-11 place-items-center rounded-full border-2 border-[#504d43] bg-[#e8e0d0]">
+        <span className="text-sm font-black text-[#2f3030]">DL</span>
+      </div>
+    </div>
+    <p className="mt-2 truncate text-lg font-black uppercase leading-none tracking-[0.06em] text-[#2f3030]">{shortName || name}</p>
+    <p className="mt-1 truncate text-xs font-black uppercase tracking-[0.08em] text-[#504d43]">F.C.</p>
+  </div>
+);
 

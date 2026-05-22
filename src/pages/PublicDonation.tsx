@@ -1,4 +1,5 @@
-import { Banknote, HeartHandshake, Mail, ShieldCheck, Sparkles } from 'lucide-react';
+import { Banknote, CreditCard, Heart, HeartHandshake, Mail, ShieldCheck, SlidersHorizontal, Sparkles, Trophy, TrendingUp, Users } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { api, getApiErrorMessage, unwrap } from '../api/client';
 import { assetUrl } from '../api/assets';
@@ -106,56 +107,126 @@ export const PublicDonation = () => {
   }
 
   return (
-    <main className="min-h-screen bg-[#d8d2c3] px-4 py-8 text-[#2d2c27] sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
+    <main className="min-h-screen overflow-x-hidden bg-[#d8d2c3] px-3 py-4 text-[#2d2c27] sm:px-6 sm:py-7 lg:px-8">
+      <div className="mx-auto w-full max-w-6xl">
+        <div className="mb-5 space-y-1">
+          <div className="h-px bg-[#2d2c27]" />
+          <div className="h-px bg-[#2d2c27]" />
+          <div className="h-px bg-[#2d2c27]" />
+        </div>
+
         {error && <p className="mb-4 rounded border border-[#8f332d] bg-[#f4eddd] px-4 py-3 text-sm font-bold text-[#8f332d]">{error}</p>}
-        <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-stretch">
-          <div className="order-2 rounded-md border-2 border-[#504d43] bg-[#ebe4d4] p-6 shadow-[5px_5px_0_rgba(80,77,67,0.18)] sm:p-8 lg:order-1">
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-[#8f332d]">{page.eyebrow}</p>
-            <h1 className="mt-3 text-4xl font-black uppercase leading-none sm:text-5xl lg:text-6xl">{page.title}</h1>
-            <p className="mt-5 text-base leading-7 text-[#504d43] sm:text-lg">{page.intro}</p>
+
+        <section className="grid gap-4 md:grid-cols-2 lg:gap-6">
+          <article className="rounded-[3px] border-2 border-[#504d43] bg-[#e8e0d0] p-5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.32)] sm:p-7 lg:p-9">
+            <p className="text-xs font-black uppercase tracking-[0.08em] text-[#9b382f]">{page.eyebrow || 'Podrzi ligu'}</p>
+            <h1 className="mt-3 max-w-2xl text-[2.05rem] font-black uppercase leading-[1.05] tracking-[0.02em] text-[#2f3030] sm:text-5xl lg:text-[3.5rem]">
+              {page.title || 'Doniraj i podrzi Duel Ligu'}
+            </h1>
+            <div className="mt-5 flex items-center gap-2 text-[#9b382f]">
+              <span className="text-xl">★</span>
+              <span className="h-px flex-1 bg-[#a9a090]" />
+            </div>
+            <p className="mt-4 max-w-2xl text-sm font-semibold leading-6 text-[#504d43] sm:text-base">
+              {page.intro}
+            </p>
             {page.ctaUrl && (
-              <a href={page.ctaUrl} className="mt-7 inline-flex items-center gap-2 rounded border-2 border-[#504d43] bg-[#8f332d] px-5 py-3 text-sm font-black text-[#f4eddd] hover:bg-[#6f2824]">
+              <a href={page.ctaUrl} className="mt-7 inline-flex w-full max-w-sm items-center justify-center gap-3 rounded-[2px] border-2 border-[#642b26] bg-[#9b382f] px-5 py-3 text-sm font-black uppercase tracking-[0.06em] text-[#f4eddd] shadow-[3px_3px_0_rgba(45,44,39,0.16)] hover:bg-[#7d2f29] sm:w-auto">
                 {ctaIsMail ? <Mail size={18} /> : <HeartHandshake size={18} />}
-                {page.ctaLabel || 'Doniraj'}
+                {page.ctaLabel || 'Hvala na podrsci!'}
               </a>
             )}
-          </div>
-          <div className="order-1 overflow-hidden rounded-md border-2 border-[#504d43] bg-[#e7dfce] shadow-[5px_5px_0_rgba(80,77,67,0.18)] lg:order-2">
+          </article>
+
+          <article className="rounded-[3px] border-2 border-[#504d43] bg-[#e8e0d0] p-5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.32)] sm:p-7 lg:p-9">
             {image ? (
-              <img src={image} alt="" className="h-full min-h-64 w-full object-cover" />
+              <img src={image} alt="" className="mx-auto h-72 w-full max-w-md rounded-[2px] border border-[#756e61] object-cover grayscale sepia" />
             ) : (
-              <div className="grid h-full min-h-64 place-items-center bg-[radial-gradient(rgba(45,44,39,0.13)_1px,transparent_1px)] bg-[size:10px_10px] p-8 text-center">
-                <div>
-                  <ShieldCheck className="mx-auto text-[#8f332d]" size={64} />
-                  <p className="mt-4 text-sm font-black uppercase tracking-[0.18em] text-[#504d43]">Podrska zajednice</p>
-                </div>
-              </div>
+              <DonationBoxIllustration />
             )}
-          </div>
+          </article>
         </section>
 
-        <section className="mt-6 grid gap-6 lg:grid-cols-2">
-          <article className="rounded-md border-2 border-[#504d43] bg-[#ebe4d4] p-6 shadow-[5px_5px_0_rgba(80,77,67,0.16)] sm:p-7">
-            <Sparkles className="text-[#8f332d]" size={26} />
-            <h2 className="mt-4 text-2xl font-black uppercase">{page.impactTitle}</h2>
-            <p className="mt-3 text-base leading-7 text-[#504d43]">{page.impactBody}</p>
+        <section className="mt-4 grid gap-4 lg:mt-6 lg:grid-cols-[0.9fr_1.1fr] lg:gap-6">
+          <article className="rounded-[3px] border-2 border-[#504d43] bg-[#e8e0d0] p-5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.32)] sm:p-7">
+            <SectionTitle icon={<Sparkles size={20} />} title={page.impactTitle || 'Zasto donirati?'} />
+            <div className="mt-5 divide-y divide-[#b8ae9c] border-t border-[#b8ae9c]">
+              <DonationReason icon={<CreditCard size={22} />} title="Bolja infrastruktura" text="Odrzavanje servera i stabilnost lige." />
+              <DonationReason icon={<Trophy size={22} />} title="Nagrade i dogadjaji" text="Vise nagrada, turnira i posebnih dogadjaja." />
+              <DonationReason icon={<TrendingUp size={22} />} title="Razvoj i unapredjenje" text="Nove funkcije, poboljsanja i inovacije." />
+              <DonationReason icon={<Users size={22} />} title="Zajednica" text="Jacamo zajednicu i stvaramo jos bolju ligu." />
+            </div>
           </article>
-          <aside className="rounded-md border-2 border-[#504d43] bg-[#e7dfce] p-6 shadow-[5px_5px_0_rgba(80,77,67,0.16)] sm:p-7">
-            <Banknote className="text-[#8f332d]" size={28} />
-            <h2 className="mt-4 text-2xl font-black uppercase">{page.paymentTitle}</h2>
-            <p className="mt-3 text-base leading-7 text-[#504d43]">{page.paymentBody}</p>
+
+          <aside className="rounded-[3px] border-2 border-[#504d43] bg-[#e8e0d0] p-5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.32)] sm:p-7">
+            <SectionTitle icon={<Banknote size={22} />} title={page.paymentTitle || 'Kako mogu donirati?'} />
+            <p className="mt-4 text-sm font-semibold leading-6 text-[#504d43]">{page.paymentBody}</p>
             <div className="mt-5 space-y-3">
               {page.recipientName && <Info label="Primalac" value={page.recipientName} />}
               {page.bankAccount && <Info label="Racun" value={page.bankAccount} />}
-              {page.paymentPurpose && <Info label="Svrha" value={page.paymentPurpose} />}
+              {page.paymentPurpose && <Info label="Svrha uplate" value={page.paymentPurpose} />}
+              <Info label="Napomena" value="Nakon uplate obavezno se javi adminu." />
             </div>
           </aside>
+        </section>
+
+        <section className="mt-4 rounded-[3px] border-2 border-[#504d43] bg-[#e8e0d0] px-5 py-7 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.32)] lg:mt-6">
+          <div className="mx-auto flex max-w-lg items-center justify-center gap-5 text-[#9b382f]">
+            <span className="text-xl">☆</span>
+            <ShieldCheck size={54} strokeWidth={2.4} />
+            <span className="text-xl">☆</span>
+          </div>
+          <h2 className="mt-3 text-3xl font-black uppercase tracking-[0.08em] text-[#2f3030] sm:text-4xl">Hvala ti!</h2>
+          <p className="mx-auto mt-2 max-w-2xl text-sm font-semibold leading-6 text-[#504d43]">
+            Svaka donacija, bez obzira na iznos, mnogo znaci za buducnost Duel Lige.
+          </p>
+          <p className="mt-2 text-sm font-black uppercase tracking-[0.12em] text-[#9b382f]">Igraj. Takmici se. Podrzi.</p>
         </section>
       </div>
     </main>
   );
 };
+
+const SectionTitle = ({ icon, title }: { icon: ReactNode; title: string }) => (
+  <div className="flex items-center gap-3 border-b border-[#8d8476] pb-3">
+    <span className="text-[#2f3030]">{icon}</span>
+    <h2 className="text-xl font-black uppercase tracking-[0.06em] text-[#2f3030] sm:text-2xl">{title}</h2>
+  </div>
+);
+
+const DonationReason = ({ icon, title, text }: { icon: ReactNode; title: string; text: string }) => (
+  <div className="flex gap-4 py-4">
+    <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full border-2 border-[#504d43] bg-[#dfd6c5] text-[#2f3030]">
+      {icon}
+    </div>
+    <div className="min-w-0">
+      <h3 className="text-sm font-black uppercase tracking-[0.03em] text-[#2f3030]">{title}</h3>
+      <p className="mt-1 text-xs font-semibold leading-5 text-[#504d43] sm:text-sm">{text}</p>
+    </div>
+  </div>
+);
+
+const DonationBoxIllustration = () => (
+  <div className="relative mx-auto flex min-h-72 w-full max-w-md items-center justify-center overflow-hidden bg-[radial-gradient(rgba(45,44,39,0.16)_1px,transparent_1px)] bg-[size:9px_9px]">
+    <div className="absolute top-5 flex h-20 w-28 items-center justify-center">
+      <span className="absolute left-0 top-1/2 h-px w-7 -rotate-[24deg] bg-[#504d43]" />
+      <span className="absolute left-8 top-1 h-7 w-px bg-[#504d43]" />
+      <span className="absolute right-8 top-1 h-7 w-px bg-[#504d43]" />
+      <span className="absolute right-0 top-1/2 h-px w-7 rotate-[24deg] bg-[#504d43]" />
+      <span className="grid h-16 w-16 place-items-center rounded-full border-2 border-[#504d43] bg-[#dfd6c5] shadow-[inset_0_0_0_4px_rgba(143,51,45,0.12)]">
+        <Heart size={27} className="fill-[#9b382f] text-[#9b382f]" />
+      </span>
+    </div>
+    <div className="relative mt-24 h-40 w-56 border-2 border-[#504d43] bg-[#cfc5b2] shadow-[8px_8px_0_rgba(45,44,39,0.12)]">
+      <div className="absolute -top-10 left-5 h-10 w-56 -skew-x-[18deg] border-2 border-[#504d43] bg-[#ddd3c2]" />
+      <div className="absolute -right-10 -top-10 h-[11.95rem] w-10 skew-y-[18deg] border-2 border-l-0 border-[#504d43] bg-[#bdb29f]" />
+      <div className="absolute left-1/2 top-4 h-2 w-24 -translate-x-1/2 rounded-full border border-[#504d43] bg-[#2f3030]" />
+      <div className="absolute left-1/2 top-14 grid h-20 w-20 -translate-x-1/2 place-items-center rounded-full border-2 border-[#504d43] bg-[#e8e0d0]">
+        <SlidersHorizontal size={34} className="text-[#2f3030]" />
+      </div>
+    </div>
+  </div>
+);
 
 const Info = ({ label, value, premium = false }: { label: string; value: string; premium?: boolean }) => (
   <div className={`rounded border px-4 py-3 ${premium ? 'border-white/10 bg-[#0b0f17]' : 'border-[#504d43] bg-[#f4eddd]'}`}>

@@ -24,7 +24,7 @@ export const PublicLayout = () => {
   const toggleTheme = () => setSiteDesign(isPremium ? 'classic' : 'premium');
 
   return (
-    <div className="min-h-screen pb-20 lg:pb-0">
+    <div className="min-h-screen overflow-x-hidden pb-20 lg:pb-0">
       <header className={`sticky top-0 z-30 border-b ${
         isPremium ? 'border-emerald-400/15 bg-[#05070b]' : 'border-[#504d43] bg-[#ebe4d4]'
       }`}
@@ -142,11 +142,11 @@ export const PublicLayout = () => {
       )}
       </header>
       <Outlet />
-      <nav className={`fixed bottom-0 left-0 right-0 z-40 border-t lg:hidden ${
+      <nav className={`fixed bottom-0 left-0 right-0 z-40 w-full max-w-full overflow-hidden border-t lg:hidden ${
         isPremium ? 'border-emerald-400/15 bg-[#05070b]' : 'border-[#504d43] bg-[#ebe4d4]'
       }`}
       >
-        <div className="grid grid-cols-7 px-1 py-2">
+        <div className="grid w-full min-w-0 grid-cols-7 px-0.5 py-1.5">
           {links.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
@@ -154,7 +154,7 @@ export const PublicLayout = () => {
               end={to === '/'}
               onClick={() => setMenuOpen(false)}
               className={({ isActive }) =>
-                `flex min-w-0 flex-col items-center justify-center gap-1 rounded px-1 py-1.5 text-[0.62rem] font-black transition ${
+                `flex min-w-0 flex-col items-center justify-center gap-0.5 rounded px-0.5 py-1.5 text-[0.54rem] font-black leading-none transition sm:text-[0.6rem] ${
                   isActive
                     ? isPremium
                       ? 'text-emerald-400'
@@ -163,7 +163,7 @@ export const PublicLayout = () => {
                 }`
               }
             >
-              <Icon size={19} />
+              <Icon size={17} />
               <span className="max-w-full truncate">{label}</span>
             </NavLink>
           ))}
